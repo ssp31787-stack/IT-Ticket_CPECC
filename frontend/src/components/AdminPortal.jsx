@@ -403,7 +403,7 @@ function AdminPortal() {
                 <div className="glass-card">
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem', position: 'relative', zIndex: 5 }}>
                         <div style={{ background: '#fff', padding: '0.6rem 1rem', borderRadius: '0.75rem', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                            <img src="/cpecc-logo.png" alt="CPECC" style={{ height: '48px', objectFit: 'contain' }} />
+                            <img src={`${import.meta.env.BASE_URL}cpecc-logo.png`} alt="CPECC" style={{ height: '48px', objectFit: 'contain' }} />
                         </div>
                     </div>
 
@@ -459,7 +459,7 @@ function AdminPortal() {
                 <div className="dash-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                         <div style={{ background: '#fff', padding: '0.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                            <img src="/cpecc-logo.png" alt="CPECC" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
+                            <img src={`${import.meta.env.BASE_URL}cpecc-logo.png`} alt="CPECC" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
                         </div>
                         <div>
                             <div className="dash-header-title">IT Service Desk</div>
