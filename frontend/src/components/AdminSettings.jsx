@@ -98,92 +98,103 @@ function AdminSettings() {
     const isSuperAdmin = localStorage.getItem('adminRole') === 'SuperAdmin';
 
     return (
-        <div className="space-y-8 animate-fadeIn">
+        <div className="space-y-8">
             {message.text && (
-                <div className={`p-4 rounded border ${message.type === 'success' ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'bg-red-500/20 text-red-400 border-red-500/50'}`}>
-                    <div className="flex items-center">{message.type === 'success' && <FaCheckCircle className="mr-2" />}{message.text}</div>
+                <div className={`p-4 rounded-xl border animate-slide-up ${message.type === 'success' ? 'bg-green-100 text-green-700 border-green-300' : 'bg-red-100 text-red-700 border-red-300'}`}>
+                    <div className="flex items-center font-bold">{message.type === 'success' && <FaCheckCircle className="mr-2" />}{message.text}</div>
                 </div>
             )}
 
-
-
+            {/* Sub-header to match the theme */}
+            <div style={{ marginBottom: '2rem' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem' }}>
+                    <FaCogs style={{ display: 'inline', color: '#0ea5e9' }} /> System <span style={{ color: '#0ea5e9' }}>Configuration</span>
+                </h2>
+                <p style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>CPECC IT Core Network Management</p>
+            </div>
 
             {/* ─── Offices + Admins ─── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
+                <div className="ai-glass" style={{ padding: '2rem' }}>
                     <div className="flex items-center space-x-3 mb-6">
-                        <FaBuilding className="text-2xl text-blue-500" />
-                        <h2 className="text-xl font-bold">Manage Offices</h2>
+                        <div style={{ background: '#e0f2fe', padding: '0.75rem', borderRadius: '1rem' }}>
+                            <FaBuilding className="text-2xl text-blue-600" />
+                        </div>
+                        <h2 className="text-xl font-extrabold text-slate-800">Operational Sectors</h2>
                     </div>
                     <form onSubmit={handleAddOffice} className="mb-6 flex space-x-2">
                         <input type="text" required value={officeName} onChange={e => setOfficeName(e.target.value)}
                             placeholder="New Office Name (e.g. Dubai HQ)"
-                            className="flex-1 bg-gray-700 border border-gray-600 rounded p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold transition-colors">Add</button>
+                            className="ai-input flex-1" />
+                        <button type="submit" disabled={loading} className="ai-btn" style={{ marginTop: 0, width: 'auto', padding: '0 1.5rem' }}>Add</button>
                     </form>
-                    <div className="border border-gray-700 rounded-lg overflow-hidden">
-                        <table className="w-full text-left text-sm text-gray-300">
-                            <thead className="bg-gray-700 text-xs uppercase text-gray-400">
-                                <tr><th className="px-4 py-3">ID</th><th className="px-4 py-3">Office Name</th></tr>
+                    <div style={{ border: '1px solid #e2e8f0', borderRadius: '1rem', overflow: 'hidden', background: '#fff' }}>
+                        <table className="w-full text-left text-sm">
+                            <thead style={{ background: '#f8fafc' }}>
+                                <tr><th className="px-4 py-3 text-slate-500 font-bold uppercase text-[10px]">Sector ID</th><th className="px-4 py-3 text-slate-500 font-bold uppercase text-[10px]">Location Name</th></tr>
                             </thead>
                             <tbody>
-                                {offices.map(o => (<tr key={o.id} className="border-t border-gray-700 hover:bg-gray-700/50"><td className="px-4 py-3">{o.id}</td><td className="px-4 py-3 font-medium text-white">{o.name}</td></tr>))}
-                                {offices.length === 0 && <tr><td colSpan="2" className="px-4 py-4 text-center text-gray-500">No offices found.</td></tr>}
+                                {offices.map(o => (<tr key={o.id} className="border-t border-slate-100 hover:bg-slate-50"><td className="px-4 py-3 font-mono text-blue-500 font-bold">#{o.id}</td><td className="px-4 py-3 font-bold text-slate-700">{o.name}</td></tr>))}
+                                {offices.length === 0 && <tr><td colSpan="2" className="px-4 py-4 text-center text-slate-400 font-semibold italic">No localized sectors found.</td></tr>}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
+                <div className="ai-glass" style={{ padding: '2rem' }}>
                     <div className="flex items-center space-x-3 mb-6">
-                        <FaUserPlus className="text-2xl text-blue-500" />
-                        <h2 className="text-xl font-bold">Manage IT Admins</h2>
+                        <div style={{ background: '#e0f2fe', padding: '0.75rem', borderRadius: '1rem' }}>
+                            <FaUserPlus className="text-2xl text-blue-600" />
+                        </div>
+                        <h2 className="text-xl font-extrabold text-slate-800">IT Operator Node</h2>
                     </div>
                     <form onSubmit={handleAddAdmin} className="space-y-4 mb-6">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-gray-400 text-xs mb-1">Username</label>
+                                <label className="ai-label">Operator ID</label>
                                 <input type="text" required value={adminForm.username} onChange={e => setAdminForm({ ...adminForm, username: e.target.value })}
-                                    className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white text-sm" placeholder="johndoe" />
+                                    className="ai-input" placeholder="johndoe" />
                             </div>
                             <div>
-                                <label className="block text-gray-400 text-xs mb-1">Password</label>
+                                <label className="ai-label">Secure Phrasal</label>
                                 <input type="password" required value={adminForm.password} onChange={e => setAdminForm({ ...adminForm, password: e.target.value })}
-                                    className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white text-sm" placeholder="••••••••" />
+                                    className="ai-input" placeholder="••••••••" />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-gray-400 text-xs mb-1">WhatsApp Number</label>
+                                <label className="ai-label">Comms Frequency</label>
                                 <input type="text" required value={adminForm.phone} onChange={e => setAdminForm({ ...adminForm, phone: e.target.value })}
-                                    className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white text-sm" placeholder="+971..." />
+                                    className="ai-input" placeholder="+971..." />
                             </div>
                             <div>
-                                <label className="block text-gray-400 text-xs mb-1">Assigned Offices</label>
+                                <label className="ai-label">Sector Permissions</label>
                                 <select multiple required value={adminForm.officeIds} onChange={e => {
                                     const selected = Array.from(e.target.selectedOptions, o => o.value);
                                     setAdminForm({ ...adminForm, officeIds: selected });
-                                }} className="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white text-sm h-20">
+                                }} className="ai-input h-20">
                                     {offices.map(o => (<option key={o.id} value={o.id}>{o.name}</option>))}
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" disabled={loading} className="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold transition-colors flex justify-center items-center">
-                            {loading ? <FaSpinner className="animate-spin" /> : 'Create IT Admin'}
+                        <button type="submit" disabled={loading} className="ai-btn">
+                            {loading ? <FaSpinner className="animate-spin" /> : <><FaRobot /> Initialize Operator</>}
                         </button>
                     </form>
-                    <div className="border border-gray-700 rounded-lg overflow-hidden max-h-48 overflow-y-auto">
-                        <table className="w-full text-left text-sm text-gray-300">
-                            <thead className="bg-gray-700 text-xs uppercase text-gray-400 sticky top-0">
-                                <tr><th className="px-4 py-3">Username</th><th className="px-4 py-3">Phone</th><th className="px-4 py-3">Offices</th></tr>
+                    <div style={{ border: '1px solid #e2e8f0', borderRadius: '1rem', overflow: 'hidden', background: '#fff', maxHeight: '200px', overflowY: 'auto' }}>
+                        <table className="w-full text-left text-sm">
+                            <thead className="sticky top-0" style={{ background: '#f8fafc', zIndex: 5 }}>
+                                <tr><th className="px-4 py-3 text-slate-500 font-bold uppercase text-[10px]">Access ID</th><th className="px-4 py-3 text-slate-500 font-bold uppercase text-[10px]">Comms</th><th className="px-4 py-3 text-slate-500 font-bold uppercase text-[10px]">Sectors</th></tr>
                             </thead>
                             <tbody>
-                                {users.map(u => (<tr key={u.id} className="border-t border-gray-700 hover:bg-gray-700/50">
-                                    <td className="px-4 py-2 font-medium text-white">{u.username}</td>
-                                    <td className="px-4 py-2 text-xs text-gray-400">{u.phone}</td>
-                                    <td className="px-4 py-2 text-blue-400">{Array.isArray(u.officeIds) ? u.officeIds.map(id => `#${id}`).join(', ') : `#${u.officeIds}`}</td>
+                                {users.map(u => (<tr key={u.id} className="border-t border-slate-100 hover:bg-slate-50">
+                                    <td className="px-4 py-2 font-bold text-slate-700">{u.username}</td>
+                                    <td className="px-4 py-2 font-mono text-[11px] text-slate-500">{u.phone}</td>
+                                    <td className="px-4 py-2">
+                                        {Array.isArray(u.officeIds) ? u.officeIds.map(id => (<span key={id} className="inline-block px-1.5 py-0.5 m-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-bold border border-blue-100">#{id}</span>)) : <span className="text-blue-500 font-bold">#{u.officeIds}</span>}
+                                    </td>
                                 </tr>))}
-                                {users.length === 0 && <tr><td colSpan="3" className="px-4 py-4 text-center text-gray-500">No IT Admins found.</td></tr>}
+                                {users.length === 0 && <tr><td colSpan="3" className="px-4 py-4 text-center text-slate-400 font-semibold italic">No operators active.</td></tr>}
                             </tbody>
                         </table>
                     </div>
@@ -192,12 +203,12 @@ function AdminSettings() {
 
             {/* Danger Zone — SuperAdmin only */}
             {isSuperAdmin && (
-                <div className="bg-red-900/20 p-6 rounded-xl border border-red-700/50 shadow-lg">
-                    <h2 className="text-xl font-bold text-red-500 mb-2">Danger Zone</h2>
-                    <p className="text-gray-400 text-sm mb-1">Permanently delete all tickets, offices, and IT admin users.</p>
-                    <p className="text-green-500 text-xs mb-4">✅ Your SuperAdmin account (<strong>Admin</strong>) is preserved after wipe.</p>
-                    <button onClick={handleWipeDB} disabled={loading} className="px-6 py-3 bg-red-600 hover:bg-red-700 rounded text-white font-bold transition-colors">
-                        {loading ? <FaSpinner className="animate-spin inline mr-2" /> : null} Wipe Database
+                <div style={{ background: '#fff1f2', border: '2px dashed #fecdd3', padding: '2rem', borderRadius: '1.5rem' }}>
+                    <h2 className="text-xl font-extrabold text-rose-600 mb-2">Critical Data Override</h2>
+                    <p className="text-slate-500 text-sm font-semibold mb-1">Permanently purge all network data, including tickets and operator nodes.</p>
+                    <p className="text-emerald-600 text-[11px] font-black uppercase mb-4 tracking-wider">🔒 Master account preserved</p>
+                    <button onClick={handleWipeDB} disabled={loading} className="px-8 py-3 bg-rose-600 hover:bg-rose-700 rounded-xl text-white font-black transition-all shadow-lg shadow-rose-200 active:transform active:scale-95">
+                        {loading ? <FaSpinner className="animate-spin inline mr-2" /> : null} Purge Core Database
                     </button>
                 </div>
             )}

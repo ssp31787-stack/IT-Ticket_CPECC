@@ -6,7 +6,7 @@ import './index.css';
 
 function App() {
     return (
-        <Router basename="/IT-Ticket_CPECC">
+        <Router basename={import.meta.env.BASE_URL}>
             <Routes>
                 <Route path="/" element={<QRScannerApp />} />
                 <Route path="/admin/*" element={<AdminPortal />} />

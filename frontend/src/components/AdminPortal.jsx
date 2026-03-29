@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaUserShield, FaSignOutAlt, FaFilter, FaDownload, FaCog, FaList, FaSync, FaServer, FaDesktop, FaNetworkWired, FaDatabase, FaWifi, FaLaptopCode } from 'react-icons/fa';
+import { FaUserShield, FaSignOutAlt, FaFilter, FaDownload, FaCog, FaList, FaSync, FaServer, FaDesktop, FaNetworkWired, FaDatabase, FaRobot, FaMicrochip, FaCogs } from 'react-icons/fa';
 import AdminSettings from './AdminSettings';
 
 const API_URL = (import.meta.env.VITE_API_URL || '') + '/api';
 
-// ─── Status Config ──────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
     'Pending': { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300', dot: '🟡' },
     'Resolved': { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300', dot: '✅' },
@@ -19,27 +18,15 @@ function getStatusStyle(status) {
     return STATUS_CONFIG[status] || { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300', dot: '📋' };
 }
 
-// ─── Animated IT Components ──────────────────────────────────────────────────
-function AnimatedNode({ icon: Icon, style, animClass }) {
-    return (
-        <div className={`it-node ${animClass}`} style={style}>
-            <div className="node-glow"></div>
-            <Icon />
-        </div>
-    );
-}
-
-// ─── Beautiful Light CSS Injected Once ──────────────────────────────────────
-const LIGHT_ANIM_STYLES = `
+const AI_LIGHT_THEME_CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap');
 
 .portal-root * { font-family: 'Outfit', sans-serif; box-sizing: border-box; }
 .portal-mono { font-family: 'Fira Code', monospace; }
 
-/* ── Deep Tech Background ── */
 .portal-bg {
     min-height: 100vh;
-    background: #f8fafc; /* Slate 50 */
+    background: #f0fdfa;
     position: relative;
     overflow: hidden;
     color: #0f172a;
@@ -47,242 +34,118 @@ const LIGHT_ANIM_STYLES = `
     justify-content: center;
 }
 
-/* ── Animated Gradient Blobs ── */
+.ai-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-size: 60px 60px;
+    background-image: 
+        linear-gradient(to right, rgba(14,165,233,0.15) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(14,165,233,0.15) 1px, transparent 1px);
+    mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 40%, transparent 90%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 40%, transparent 90%);
+}
 .portal-bg::before, .portal-bg::after {
-    content: ''; position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0;
-    opacity: 0.6;
+    content: ''; position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; opacity: 0.6;
 }
-.portal-bg::before {
-    width: 600px; height: 600px; background: rgba(56, 189, 248, 0.25); /* Sky blue */
-    top: -150px; left: -100px;
-    animation: blob-drift 12s infinite alternate ease-in-out;
-}
-.portal-bg::after {
-    width: 500px; height: 500px; background: rgba(167, 139, 250, 0.2); /* Violet */
-    bottom: -150px; right: -100px;
-    animation: blob-drift 15s infinite alternate-reverse ease-in-out;
-}
+.portal-bg::before { width: 600px; height: 600px; background: rgba(56, 189, 248, 0.3); top: -150px; left: -100px; animation: blob-drift 12s infinite alternate ease-in-out; }
+.portal-bg::after { width: 500px; height: 500px; background: rgba(16, 185, 129, 0.2); bottom: -150px; right: -100px; animation: blob-drift 15s infinite alternate-reverse ease-in-out; }
 @keyframes blob-drift { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(100px, 80px) scale(1.1); } }
 
-/* ── Grid Pattern ── */
-.it-grid {
-    position: absolute; inset: 0; z-index: 0;
-    background-size: 50px 50px;
-    background-image: 
-        linear-gradient(to right, rgba(148,163,184,0.15) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(148,163,184,0.15) 1px, transparent 1px);
-    mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 30%, transparent 80%);
-    -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 30%, transparent 80%);
+.ai-scanner {
+    position: absolute; width: 100%; height: 4px;
+    background: linear-gradient(90deg, transparent, #0ea5e9, transparent);
+    top: -10px; z-index: 1; opacity: 0.5; filter: drop-shadow(0 4px 6px rgba(14,165,233,0.5));
+    animation: scan-down 8s infinite linear;
 }
+@keyframes scan-down { 0% { top: -10px; } 100% { top: 110vh; } }
 
-/* ── Animated Data Packets (Line Beams) ── */
-.data-beam {
+.ai-node {
     position: absolute;
-    background: linear-gradient(90deg, transparent, rgba(14,165,233,0.8), transparent);
-    height: 2px; width: 200px;
-    opacity: 0; z-index: 1;
-    filter: drop-shadow(0 0 8px rgba(14,165,233,0.6));
-}
-.beam-1 { top: 20%; left: -200px; animation: beamH 6s infinite linear 1s; }
-.beam-2 { top: 75%; left: -200px; animation: beamH 8s infinite linear 3s; background: linear-gradient(90deg, transparent, rgba(139,92,246,0.8), transparent); }
-.beam-v {
-    position: absolute; width: 2px; height: 200px;
-    background: linear-gradient(180deg, transparent, rgba(14,165,233,0.8), transparent);
-    opacity: 0; z-index: 1; filter: drop-shadow(0 0 8px rgba(14,165,233,0.6));
-}
-.beam-3 { left: 25%; top: -200px; animation: beamV 7s infinite linear 2s; }
-.beam-4 { left: 80%; top: -200px; animation: beamV 9s infinite linear 5s; background: linear-gradient(180deg, transparent, rgba(16,185,129,0.8), transparent); }
-
-@keyframes beamH { 0% { transform: translateX(0); opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { transform: translateX(110vw); opacity:0; } }
-@keyframes beamV { 0% { transform: translateY(0); opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { transform: translateY(110vh); opacity:0; } }
-
-/* ── Floating IT Nodes ── */
-.it-node {
-    position: absolute;
-    width: 56px; height: 56px;
-    background: rgba(255,255,255,0.7);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(14,165,233,0.3);
-    border-radius: 16px;
+    width: 60px; height: 60px;
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);
+    border: 1px solid rgba(14,165,233,0.3); border-radius: 16px;
     display: flex; align-items: center; justify-content: center;
-    color: #0284c7; font-size: 1.5rem;
-    box-shadow: 0 10px 25px rgba(14,165,233,0.15);
-    z-index: 2;
+    color: #0ea5e9; font-size: 1.8rem;
+    box-shadow: 0 10px 25px rgba(14,165,233,0.15); z-index: 2;
 }
-.node-glow {
-    position: absolute; inset: -3px;
-    border-radius: 18px; border: 2px solid rgba(14,165,233,0.5);
-    animation: ring-expand 3s infinite;
+.ai-node-glow {
+    position: absolute; inset: -4px;
+    border-radius: 20px; border: 2px dashed rgba(16,185,129,0.5);
+    animation: ring-spin 8s infinite linear;
 }
-@keyframes ring-expand { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
+@keyframes ring-spin { 100% { transform: rotate(360deg); } }
+.float-s { animation: aiHover 6s infinite ease-in-out alternate; }
+.float-f { animation: aiHover 4s infinite ease-in-out alternate-reverse; }
+@keyframes aiHover { from { transform: translateY(-15px) rotate(-5deg); } to { transform: translateY(15px) rotate(5deg); } }
 
-.float-slow { animation: hoverMove 6s infinite ease-in-out alternate; }
-.float-med  { animation: hoverMove 5s infinite ease-in-out alternate-reverse; }
-.float-fast { animation: hoverMove 4s infinite ease-in-out alternate; }
-@keyframes hoverMove { from { transform: translateY(0px) rotate(0deg); } to { transform: translateY(-20px) rotate(5deg); } }
-
-/* ── Login Glass Card ── */
-.glass-card {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255,255,255,0.9);
-    border-radius: 1.5rem; padding: 2.5rem;
-    width: 100%; max-width: 440px;
+.ai-glass {
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.9); border-radius: 1.5rem;
     box-shadow: 0 20px 40px -10px rgba(14,165,233,0.15), 0 0 0 1px rgba(14,165,233,0.05);
     position: relative; z-index: 10;
-    align-self: center; /* for login screen */
-    margin: 1.5rem;
-    animation: slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
+.glass-login { width: 100%; max-width: 440px; padding: 2.5rem; align-self: center; margin: 1.5rem; animation: slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes slide-up { from { opacity:0; transform:translateY(40px) scale(0.96); } to { opacity:1; transform:none; } }
 
-.login-title { font-size: 1.8rem; font-weight: 800; color: #0f172a; text-align: center; margin-bottom: .2rem; letter-spacing: -0.02em; }
-.login-sub   { font-size: .8rem; color: #64748b; text-align: center; margin-bottom: 2rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; }
+.brain-wrapper { display: flex; justify-content: center; margin-bottom: 1.5rem; position: relative; }
+.brain-icon { font-size: 4rem; color: #0ea5e9; position: relative; z-index: 2; animation: brain-pulse 2s infinite alternate ease-in-out; }
+.brain-ring { position: absolute; width: 80px; height: 80px; border: 2px solid rgba(14,165,233,0.3); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: radar 3s infinite; }
+@keyframes brain-pulse { from { filter: drop-shadow(0 0 10px rgba(14,165,233,0.2)); } to { filter: drop-shadow(0 0 25px rgba(14,165,233,0.6)); } }
+@keyframes radar { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2); opacity: 0; } }
 
-/* ── Giant Central Shield Pulse ── */
-.shield-wrapper { display: flex; justify-content: center; margin-bottom: 1.5rem; position: relative; }
-.shield-icon { font-size: 3.5rem; color: #0ea5e9; position: relative; z-index: 2; animation: icon-float 4s infinite alternate ease-in-out; }
-.shield-pulse { position: absolute; width: 60px; height: 60px; background: rgba(14,165,233,0.2); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: giant-pulse 3s infinite; }
-@keyframes icon-float { from { transform: translateY(-3px); filter: drop-shadow(0 5px 10px rgba(14,165,233,0.3)); } to { transform: translateY(3px); filter: drop-shadow(0 15px 25px rgba(14,165,233,0.4)); } }
-@keyframes giant-pulse { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; } }
+.ai-input { width: 100%; padding: .9rem 1rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: .75rem; font-size:.95rem; color: #0f172a; transition: all .2s; outline: none; }
+.ai-input:focus { border-color: #0ea5e9; background: #fff; box-shadow: 0 0 0 4px rgba(14,165,233,0.15); }
+.ai-label { display:block; font-size:.8rem; font-weight:700; color:#475569; margin-bottom:.4rem; text-transform:uppercase; letter-spacing:0.05em; }
 
-/* ── Inputs ── */
-.glass-input {
-    width: 100%; padding: .9rem 1rem;
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: .75rem; font-size:.95rem; color: #0f172a;
-    transition: all .2s; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+.ai-btn {
+    width: 100%; padding: 1rem; margin-top: 1rem;
+    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: #fff; font-weight: 800; font-size: 1.05rem; letter-spacing: .03em;
+    border: none; border-radius: .75rem; cursor: pointer; position: relative; overflow: hidden;
+    box-shadow: 0 10px 25px rgba(37,99,235,0.3); transition: all .3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
 }
-.glass-input:focus {
-    border-color: #0ea5e9; background: #fff;
-    box-shadow: 0 0 0 4px rgba(14,165,233,0.15), inset 0 2px 4px rgba(0,0,0,0.02);
-}
-.glass-label { display:block; font-size:.8rem; font-weight:600; color:#475569; margin-bottom:.4rem; letter-spacing:.02em; }
+.error-msg { background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; border-radius: .6rem; padding: .8rem; font-size: .85rem; text-align: center; margin-bottom: 1.5rem; font-weight: 600; }
 
-/* ── Cyber Hover Button ── */
-.animated-btn {
-    width: 100%; padding: .9rem; margin-top: .5rem;
-    background: linear-gradient(135deg, #0284c7 0%, #3b82f6 100%);
-    color: #fff; font-weight: 700; font-size: 1rem; letter-spacing: .02em;
-    border: none; border-radius: .75rem; cursor: pointer;
-    position: relative; overflow: hidden;
-    box-shadow: 0 8px 20px rgba(2,132,199,0.3);
-    transition: all .2s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.animated-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 25px rgba(2,132,199,0.4);
-}
-.animated-btn:active { transform: translateY(0); }
-.animated-btn::after {
-    content:''; position:absolute; top:0; left:-100%; width:40%; height:100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    animation: wave-slide 2.5s infinite;
-}
-@keyframes wave-slide { 0% { left: -100%; } 20%, 100% { left: 200%; } }
-
-/* ── Error Box ── */
-.error-msg { background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; border-radius: .6rem; padding: .8rem; font-size: .85rem; text-align: center; margin-bottom: 1.5rem; font-weight: 500; }
-
-/* ── Dashboard Layout ── */
 .dash-content { width: 100%; max-width: 1400px; padding: 1.5rem; position: relative; z-index: 10; margin: 0 auto; }
+.dash-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; padding: 1.25rem 1.75rem; }
+.dash-title { font-size:1.6rem; font-weight:800; color:#0f172a; letter-spacing:-0.02em; }
+.dash-sub { font-size:.8rem; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
 
-.dash-header {
-    background: rgba(255,255,255,0.85); backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.8);
-    border-radius: 1.25rem; padding: 1.25rem 1.75rem;
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
-    box-shadow: 0 10px 30px rgba(14,165,233,0.08); margin-bottom: 1.5rem;
-}
-.dash-header-title { font-size:1.5rem; font-weight:800; color:#0f172a; letter-spacing:-0.02em; }
-.dash-header-sub { font-size:.75rem; color:#64748b; margin-top:.2rem; font-weight:500; }
+.nav-btn { display:flex; align-items:center; gap:.5rem; padding:.6rem 1.25rem; border-radius:.75rem; font-weight:700; cursor:pointer; background: transparent; color: #64748b; border: 1px solid transparent; transition: all .2s; }
+.nav-btn:hover { background: #f1f5f9; color: #0f172a; }
+.nav-btn.active { background: #e0f2fe; color: #0ea5e9; border-color: #bae6fd; box-shadow: 0 4px 12px rgba(14,165,233,0.1); }
+.ico-btn { display:flex; align-items:center; justify-content:center; padding:.6rem; border-radius:.75rem; border:1px solid #e2e8f0; background:#fff; color:#64748b; cursor:pointer; transition:all .2s; }
 
-/* ── Dashboard Buttons ── */
-.nav-btn {
-    display:flex; align-items:center; gap:.5rem; padding:.55rem 1.25rem; border-radius:.75rem;
-    font-weight:600; font-size:.85rem; cursor:pointer; transition:all .2s; border:1px solid transparent;
-    background: transparent; color: #64748b;
-}
-.nav-btn:hover { background: #f1f5f9; color: #1e293b; }
-.nav-btn.active {
-    background: #e0f2fe; color: #0284c7; border-color: #bae6fd;
-    box-shadow: 0 4px 12px rgba(14,165,233,0.1);
-}
-
-.ico-btn {
-    display:flex; align-items:center; justify-content:center; padding:.55rem .8rem;
-    border-radius:.75rem; border:1px solid #e2e8f0;
-    background:#fff; color:#64748b; cursor:pointer; transition:all .2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-}
-.ico-btn:hover { background:#f1f5f9; color:#0284c7; border-color:#cbd5e1; }
-
-.kill-btn {
-    display:flex; align-items:center; gap:.5rem; padding:.55rem 1.1rem; border-radius:.75rem;
-    border:1px solid #fecaca; background:#fef2f2; color:#e11d48;
-    font-weight:600; font-size:.85rem; cursor:pointer; transition:all .2s;
-}
-.kill-btn:hover { background:#ffe4e6; box-shadow:0 4px 12px rgba(225,29,72,0.15); transform:translateY(-1px); }
-
-/* ── Stats ── */
 .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.25rem; margin-bottom:1.5rem; }
 @media(max-width:800px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
-.stat-box {
-    background: rgba(255,255,255,0.9); backdrop-filter: blur(16px);
-    border-radius: 1.25rem; padding: 1.5rem; text-align: center;
-    border: 1px solid rgba(255,255,255,0.8);
-    box-shadow: 0 8px 20px rgba(14,165,233,0.06);
-    transition: all .3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    position: relative; overflow: hidden;
-}
-.stat-box:hover { transform: translateY(-5px); box-shadow: 0 15px 30px var(--hover-shadow); }
+.stat-box { padding: 1.5rem; text-align: center; transition: all .3s; position: relative; overflow: hidden; }
 .stat-box::before { content:''; position:absolute; top:0; left:0; width:100%; height:4px; background: var(--stat-color); }
-.stat-val { font-size:2.4rem; font-weight:800; font-family:'Fira Code', monospace; line-height:1; margin-bottom:.5rem; color: #0f172a; }
-.stat-lbl { font-size:.7rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.08em; }
+.stat-val { font-size:2.5rem; font-weight:800; font-family:'Fira Code', monospace; line-height:1; margin-bottom:.5rem; color: #0f172a; }
+.stat-lbl { font-size:.7rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:.05em; display:flex; align-items:center; justify-content:center; gap:.4rem; }
 
-/* ── Controls Bar ── */
-.filter-bar {
-    background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.8); border-radius: 1.25rem;
-    padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem;
-    align-items: center; justify-content: space-between; margin-bottom: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-}
-.text-filter {
-    flex:1; min-width:220px; padding:.7rem 1.1rem; border-radius:.75rem;
-    border:1px solid #cbd5e1; background:#f8fafc; color:#0f172a; font-size:.85rem; outline:none; transition:all .2s;
-}
+.filter-bar { padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+.text-filter { flex:1; min-width:220px; padding:.7rem 1.1rem; border-radius:.75rem; border:1px solid #cbd5e1; background:#f8fafc; font-size:.9rem; outline:none; transition:all .2s; font-weight:500; }
 .text-filter:focus { border-color:#0ea5e9; box-shadow:0 0 0 3px rgba(14,165,233,0.15); background:#fff; }
-.drop-filter {
-    padding:.7rem 1.1rem; border-radius:.75rem; border:1px solid #cbd5e1; background:#f8fafc; color:#0f172a; font-size:.85rem; outline:none; cursor:pointer;
-}
+.drop-filter { padding:.7rem 1.1rem; border-radius:.75rem; border:1px solid #cbd5e1; background:#f8fafc; font-weight:600; font-size:.85rem; outline:none; cursor:pointer; color:#0f172a; }
 
-.act-btn {
-    display:flex; align-items:center; gap:.5rem; padding:.7rem 1.25rem; border-radius:.75rem; font-size:.85rem; font-weight:600; cursor:pointer;
-    border:1px solid #e2e8f0; background:#fff; color:#475569; transition:all .2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-}
-.act-btn:hover { background:#f8fafc; color:#0f172a; transform:translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-.act-excel { background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
-.act-excel:hover { transform:translateY(-2px); box-shadow: 0 8px 20px rgba(16,185,129,0.4); color:#fff; }
-
-/* ── Data Table ── */
-.data-card {
-    background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.8); border-radius: 1.25rem;
-    overflow: hidden; overflow-x: auto; box-shadow: 0 10px 30px rgba(14,165,233,0.06);
-}
 .ticket-table { width:100%; border-collapse:collapse; font-size:.85rem; }
-.ticket-table thead { background: #f1f5f9; border-bottom: 2px solid #e2e8f0; }
-.ticket-table th { padding:1.1rem 1.25rem; color:#475569; font-weight:700; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; text-align:left; }
+.ticket-table thead { background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+.ticket-table th { padding:1.1rem; color:#475569; font-weight:800; font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; text-align:left; }
 .ticket-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: all .2s; }
-.ticket-table tbody tr:hover { background: #f8fafc; }
-.ticket-table td { padding: 1.1rem 1.25rem; vertical-align: middle; color: #334155; }
-.id-badge { color: #0284c7; font-weight: 700; font-size: .85rem; padding: 0.2rem 0.6rem; background: #e0f2fe; border-radius: 0.4rem; border: 1px solid #bae6fd; }
-.state-pill { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .8rem; border-radius:999px; font-size:.75rem; font-weight:600; border:1px solid; }
+.ticket-table td { padding: 1.1rem; vertical-align: middle; color: #334155; }
+.id-badge { color: #0ea5e9; font-weight: 700; font-size: .85rem; padding: 0.3rem 0.6rem; background: #e0f2fe; border-radius: 0.4rem; border: 1px solid #bae6fd; }
+.state-pill { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .8rem; border-radius:999px; font-size:.75rem; font-weight:700; border:1px solid; }
 
-.anim-fade { animation: fade-in .5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-@keyframes fade-in { from{opacity:0;transform:translateY(15px);} to{opacity:1;transform:none;} }
+.act-excel { background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; padding:.7rem 1.25rem; border-radius:.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:.5rem; box-shadow: 0 4px 15px rgba(16,185,129,0.3); transition:all .2s; }
 `;
+
+function AnimatedAiNode({ icon: Icon, style, animClass }) {
+    return (
+        <div className={`ai-node ${animClass}`} style={style}>
+            <div className="ai-node-glow"></div>
+            <Icon />
+        </div>
+    );
+}
 
 function AdminPortal() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -296,16 +159,12 @@ function AdminPortal() {
     const refreshIntervalRef = useRef(null);
 
     useEffect(() => {
-        const id = 'light-anim-styles';
+        const id = 'ai-light-portal-css';
         if (!document.getElementById(id)) {
             const tag = document.createElement('style');
-            tag.id = id;
-            tag.textContent = LIGHT_ANIM_STYLES;
+            tag.id = id; tag.textContent = AI_LIGHT_THEME_CSS;
             document.head.appendChild(tag);
         }
-    }, []);
-
-    useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (token) { setIsLoggedIn(true); fetchTickets(); }
     }, []);
@@ -321,7 +180,6 @@ function AdminPortal() {
             const res = await axios.post(`${API_URL}/admin/login`, credentials);
             if (res.data.success) {
                 localStorage.setItem('adminToken', res.data.token);
-                localStorage.setItem('adminRole', res.data.user?.role || '');
                 setIsLoggedIn(true); fetchTickets();
             }
         } catch (err) { setError(err.response?.data?.error || 'Invalid Credentials'); }
@@ -336,14 +194,13 @@ function AdminPortal() {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('adminToken'); localStorage.removeItem('adminRole');
-        setIsLoggedIn(false); setTickets([]); clearInterval(refreshIntervalRef.current);
+        localStorage.removeItem('adminToken'); setIsLoggedIn(false); setTickets([]);
+        clearInterval(refreshIntervalRef.current);
     };
 
     const filteredTickets = tickets.filter(t => {
         const q = filter.toLowerCase();
-        const matchSearch = t.ticketId.toLowerCase().includes(q) || t.projectName.toLowerCase().includes(q)
-            || t.office.toLowerCase().includes(q) || t.name.toLowerCase().includes(q);
+        const matchSearch = t.ticketId.toLowerCase().includes(q) || t.projectName.toLowerCase().includes(q) || t.office.toLowerCase().includes(q) || t.name.toLowerCase().includes(q);
         return matchSearch && (statusFilter === 'all' || t.status === statusFilter);
     });
 
@@ -354,19 +211,6 @@ function AdminPortal() {
         active: tickets.filter(t => t.status !== 'Resolved' && t.status !== 'Pending').length,
     };
 
-    const downloadCSV = () => {
-        const headers = ['Ticket ID', 'Name', 'Phone', 'Project', 'Office', 'Complaint', 'Status', 'Resolved By', 'Date'];
-        const rows = filteredTickets.map(t => [
-            t.ticketId, t.name, t.userPhone, t.projectName, t.office,
-            `"${t.complaint.replace(/"/g, '""')}"`,
-            t.status, t.resolvedByName || '', new Date(t.createdAt).toLocaleString()
-        ]);
-        const csv = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-        const a = document.createElement('a');
-        a.href = encodeURI(csv); a.download = 'tickets_export.csv';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    };
-
     const handleExcelExport = async () => {
         try {
             const res = await axios.get(`${API_URL}/admin/export`);
@@ -374,237 +218,134 @@ function AdminPortal() {
         } catch { alert('Export failed'); }
     };
 
-    // ── BACKGROUND ANIMATIONS ────────────────────────────────────────────────
-    const ItNetworkBackground = () => (
+    const Background = () => (
         <>
-            <div className="it-grid"></div>
-            {/* Horizontal Beams */}
-            <div className="data-beam beam-1"></div>
-            <div className="data-beam beam-2"></div>
-            {/* Vertical Beams */}
-            <div className="beam-v beam-3"></div>
-            <div className="beam-v beam-4"></div>
-
-            {/* Animated Hardware Nodes */}
-            <AnimatedNode icon={FaServer} style={{ top: '12%', left: '15%' }} animClass="float-slow" />
-            <AnimatedNode icon={FaNetworkWired} style={{ top: '25%', right: '18%' }} animClass="float-med" />
-            <AnimatedNode icon={FaDatabase} style={{ bottom: '15%', left: '22%' }} animClass="float-fast" />
-            <AnimatedNode icon={FaLaptopCode} style={{ bottom: '25%', right: '12%' }} animClass="float-slow" />
-            <AnimatedNode icon={FaWifi} style={{ top: '50%', left: '8%' }} animClass="float-med" />
+            <div className="ai-grid"></div>
+            <div className="ai-scanner"></div>
+            <AnimatedAiNode icon={FaRobot} style={{ top: '12%', left: '10%' }} animClass="float-s" />
+            <AnimatedAiNode icon={FaMicrochip} style={{ top: '25%', right: '10%' }} animClass="float-f" />
+            <AnimatedAiNode icon={FaDatabase} style={{ bottom: '15%', left: '15%' }} animClass="float-f" />
+            <AnimatedAiNode icon={FaNetworkWired} style={{ bottom: '20%', right: '15%' }} animClass="float-s" />
         </>
     );
 
-    // ── LOGIN SCREEN ────────────────────────────────────────────────────────
     if (!isLoggedIn) {
         return (
             <div className="portal-root portal-bg">
-                <ItNetworkBackground />
-
-                <div className="glass-card">
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem', position: 'relative', zIndex: 5 }}>
-                        <div style={{ background: '#fff', padding: '0.6rem 1rem', borderRadius: '0.75rem', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-                            <img src={`${import.meta.env.BASE_URL}cpecc-logo.png`} alt="CPECC" style={{ height: '48px', objectFit: 'contain' }} />
-                        </div>
+                <Background />
+                <div className="ai-glass glass-login">
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                        <img src={`${import.meta.env.BASE_URL || '/'}cpecc-logo.png`} alt="CPECC" style={{ height: '50px' }} />
                     </div>
-
-                    <div className="shield-wrapper">
-                        <div className="shield-pulse"></div>
-                        <FaUserShield className="shield-icon" />
+                    <div className="brain-wrapper">
+                        <div className="brain-ring"></div>
+                        <FaRobot className="brain-icon" />
                     </div>
-
-                    <div className="login-title">IT Service Hub</div>
-                    <div className="login-sub">Secure Network Access</div>
+                    <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>IT AI Security Core</h2>
+                        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Authentication Required</span>
+                    </div>
 
                     {error && <div className="error-msg">{error}</div>}
 
-                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', position: 'relative', zIndex: 5 }}>
+                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '1rem' }}>
                         <div>
-                            <label className="glass-label">Username</label>
-                            <input
-                                type="text" required autoComplete="username" className="glass-input"
-                                placeholder="Enter your ID..."
-                                value={credentials.username}
-                                onChange={e => setCredentials({ ...credentials, username: e.target.value })}
-                            />
+                            <label className="ai-label">Admin Identity</label>
+                            <input type="text" required autoComplete="username" className="ai-input" placeholder="Enter ID..." value={credentials.username} onChange={e => setCredentials({ ...credentials, username: e.target.value })} />
                         </div>
                         <div>
-                            <label className="glass-label">Password</label>
-                            <input
-                                type="password" required autoComplete="current-password" className="glass-input"
-                                placeholder="••••••••••••"
-                                value={credentials.password}
-                                onChange={e => setCredentials({ ...credentials, password: e.target.value })}
-                            />
+                            <label className="ai-label">Security Passkey</label>
+                            <input type="password" required autoComplete="current-password" className="ai-input" placeholder="••••••••" value={credentials.password} onChange={e => setCredentials({ ...credentials, password: e.target.value })} />
                         </div>
-                        <button type="submit" className="animated-btn">
-                            Initialize Session
-                        </button>
+                        <button type="submit" className="ai-btn"><FaUserShield /> Access AI Core Network</button>
                     </form>
-
-                    <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                        System Verification Required
-                    </div>
                 </div>
             </div>
         );
     }
 
-    // ── DASHBOARD ────────────────────────────────────────────────────────────
     return (
-        <div className="portal-root portal-bg anim-fade">
-            <ItNetworkBackground />
-
+        <div className="portal-root portal-bg" style={{ animation: 'slide-up 0.5s ease-out' }}>
+            <Background />
             <div className="dash-content">
-                {/* Header */}
-                <div className="dash-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-                        <div style={{ background: '#fff', padding: '0.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                            <img src={`${import.meta.env.BASE_URL}cpecc-logo.png`} alt="CPECC" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
-                        </div>
+                <div className="ai-glass dash-header">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <img src={`${import.meta.env.BASE_URL || '/'}cpecc-logo.png`} alt="CPECC" style={{ height: '45px' }} />
                         <div>
-                            <div className="dash-header-title">IT Service Desk</div>
-                            {lastRefresh && (
-                                <div className="dash-header-sub">
-                                    Network Synced: {lastRefresh.toLocaleTimeString()} (Auto 15s)
-                                </div>
-                            )}
+                            <div className="dash-title">CPECC IT Service <span style={{ color: '#0ea5e9' }}>AI Hub</span></div>
+                            {lastRefresh && <div className="dash-sub">Network Node Synced: {lastRefresh.toLocaleTimeString()}</div>}
                         </div>
                     </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem', flexWrap: 'wrap' }}>
-                        <button className={`nav-btn${activeTab === 'dashboard' ? ' active' : ''}`} onClick={() => setActiveTab('dashboard')}>
-                            <FaList /> Manage Tickets
-                        </button>
-                        <button className={`nav-btn${activeTab === 'settings' ? ' active' : ''}`} onClick={() => setActiveTab('settings')}>
-                            <FaCog /> Configuration
-                        </button>
-                        <button className="ico-btn" onClick={fetchTickets} title="Sync Network">
-                            <FaSync />
-                        </button>
-                        <button className="kill-btn" onClick={handleLogout}>
-                            <FaSignOutAlt /> End Session
-                        </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <button className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}><FaList /> Process Tickets</button>
+                        <button className={`nav-btn ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}><FaCogs /> System Config</button>
+                        <button className="ico-btn" onClick={fetchTickets} title="Force Sync"><FaSync /></button>
+                        <button className="nav-btn" onClick={handleLogout} style={{ color: '#e11d48' }}><FaSignOutAlt /> End Session</button>
                     </div>
                 </div>
 
                 {activeTab === 'settings' ? (
-                    <div style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(16px)', borderRadius: '1.25rem', padding: '2rem', border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 10px 30px rgba(14,165,233,0.06)' }}>
-                        <AdminSettings />
-                    </div>
+                    <div className="ai-glass" style={{ padding: '2rem' }}><AdminSettings /></div>
                 ) : (
                     <>
-                        {/* Stats Cards */}
                         <div className="stat-grid">
                             {[
-                                { label: 'Total Assets', value: stats.total, color: '#0284c7', shadow: 'rgba(2,132,199,0.15)', icon: '🗂️' },
-                                { label: 'Queueing', value: stats.pending, color: '#d97706', shadow: 'rgba(217,119,6,0.15)', icon: '⏳' },
-                                { label: 'In Progress', value: stats.active, color: '#7c3aed', shadow: 'rgba(124,58,237,0.15)', icon: '⚡' },
-                                { label: 'Resolved', value: stats.resolved, color: '#059669', shadow: 'rgba(5,150,105,0.15)', icon: '✅' },
+                                { label: 'Total Data Nodes', value: stats.total, color: '#0ea5e9', shadow: 'rgba(14,165,233,0.15)', icon: <FaServer /> },
+                                { label: 'Pending Analysis', value: stats.pending, color: '#d97706', shadow: 'rgba(217,119,6,0.15)', icon: <FaMicrochip /> },
+                                { label: 'Active Processing', value: stats.active, color: '#8b5cf6', shadow: 'rgba(139,92,246,0.15)', icon: <FaNetworkWired /> },
+                                { label: 'AI Resolved', value: stats.resolved, color: '#10b981', shadow: 'rgba(16,185,129,0.15)', icon: <FaRobot /> },
                             ].map(s => (
-                                <div key={s.label} className="stat-box" style={{ '--stat-color': s.color, '--hover-shadow': s.shadow }}>
+                                <div key={s.label} className="ai-glass stat-box" style={{ '--stat-color': s.color, '--hover-shadow': s.shadow }}>
                                     <div className="stat-val">{s.value}</div>
                                     <div className="stat-lbl">{s.icon} {s.label}</div>
                                 </div>
                             ))}
                         </div>
 
-                        {/* Controls Bar */}
-                        <div className="filter-bar">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem', flex: 1, minWidth: '250px' }}>
-                                <FaFilter style={{ color: '#94a3b8', fontSize: '1.1rem' }} />
-                                <input
-                                    type="text"
-                                    placeholder="Search ID, Name, Project, or Office..."
-                                    value={filter}
-                                    onChange={e => setFilter(e.target.value)}
-                                    className="text-filter"
-                                />
+                        <div className="ai-glass filter-bar">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: '250px' }}>
+                                <FaFilter style={{ color: '#94a3b8' }} />
+                                <input type="text" placeholder="Scan Network for Identity, Project, or ID..." value={filter} onChange={e => setFilter(e.target.value)} className="text-filter" />
                             </div>
                             <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="drop-filter">
-                                <option value="all">Global Scope</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Escalated">Escalated</option>
-                                <option value="Restart">Restart</option>
-                                <option value="AnyDesk Request">AnyDesk</option>
-                                <option value="Updated">Updated</option>
-                                <option value="Resolved">Resolved</option>
+                                <option value="all">Any Status Level</option>
+                                {Object.keys(STATUS_CONFIG).map(k => <option key={k} value={k}>{k}</option>)}
                             </select>
-                            <div style={{ display: 'flex', gap: '.75rem' }}>
-                                <button onClick={downloadCSV} className="act-btn">
-                                    <FaDownload /> Export CSV
-                                </button>
-                                <button onClick={handleExcelExport} className="act-btn act-excel">
-                                    <FaDatabase style={{ marginRight: '.4rem' }} /> Export Excel Data
-                                </button>
-                            </div>
+                            <button onClick={handleExcelExport} className="act-excel"><FaDownload /> Export Network Data</button>
                         </div>
 
-                        {/* Data Table */}
-                        <div className="data-card">
+                        <div className="ai-glass" style={{ overflowX: 'auto' }}>
                             <table className="ticket-table">
-                                <thead>
-                                    <tr>
-                                        <th>Ticket ID</th>
-                                        <th>Date/Time</th>
-                                        <th>User Details</th>
-                                        <th>Location details</th>
-                                        <th>Issue Description</th>
-                                        <th>Current Status</th>
-                                        <th>Assigned Admin</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr><th>Ticket ID Node</th><th>Timestamp</th><th>User Identity</th><th>Physical Location</th><th>Anomaly Detected</th><th>Current Status AI</th><th>Assigned Engineer</th></tr></thead>
                                 <tbody>
-                                    {filteredTickets.map((ticket) => {
-                                        const s = getStatusStyle(ticket.status);
-                                        const isResolved = ticket.status === 'Resolved';
+                                    {filteredTickets.map(t => {
+                                        const s = getStatusStyle(t.status);
                                         return (
-                                            <tr key={ticket.ticketId} style={{ opacity: isResolved ? 0.6 : 1 }}>
-                                                <td><span className="id-badge portal-mono">{ticket.ticketId}</span></td>
-                                                <td style={{ fontSize: '.75rem', color: '#64748b' }}>
-                                                    {new Date(ticket.createdAt).toLocaleString()}
+                                            <tr key={t.ticketId} style={{ opacity: t.status === 'Resolved' ? 0.6 : 1 }}>
+                                                <td><span className="id-badge portal-mono">{t.ticketId}</span></td>
+                                                <td style={{ fontSize: '.75rem', color: '#64748b' }}>{new Date(t.createdAt).toLocaleString()}</td>
+                                                <td>
+                                                    <div style={{ fontWeight: 800, color: '#0f172a' }}>{t.name}</div>
+                                                    <div className="portal-mono" style={{ fontSize: '.75rem', color: '#64748b' }}>{t.userPhone}</div>
                                                 </td>
                                                 <td>
-                                                    <div style={{ fontWeight: 700, color: '#0f172a' }}>{ticket.name}</div>
-                                                    <div className="portal-mono" style={{ fontSize: '.75rem', color: '#64748b' }}>{ticket.userPhone}</div>
+                                                    <div style={{ fontWeight: 700, color: '#1e293b' }}>{t.projectName}</div>
+                                                    <div style={{ fontSize: '.75rem', color: '#0ea5e9', fontWeight: 600 }}>{t.office}</div>
                                                 </td>
-                                                <td>
-                                                    <div style={{ fontWeight: 600, color: '#1e293b' }}>{ticket.projectName}</div>
-                                                    <div style={{ fontSize: '.75rem', color: '#0284c7', fontWeight: 500 }}>{ticket.office}</div>
-                                                </td>
-                                                <td style={{ maxWidth: '280px' }}>
-                                                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#475569', fontWeight: 500 }} title={ticket.complaint}>
-                                                        {ticket.complaint}
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span className={`state-pill ${s.bg} ${s.text} ${s.border}`}>
-                                                        {s.dot} {ticket.status}
-                                                    </span>
-                                                </td>
+                                                <td style={{ maxWidth: '280px' }}><div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#475569', fontWeight: 600 }} title={t.complaint}>{t.complaint}</div></td>
+                                                <td><span className={`state-pill ${s.bg} ${s.text} ${s.border}`}>{s.dot} {t.status}</span></td>
                                                 <td style={{ fontSize: '.8rem' }}>
-                                                    {ticket.resolvedByName
-                                                        ? <span style={{ color: '#059669', fontWeight: 700 }}>{ticket.resolvedByName}</span>
-                                                        : <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Waiting...</span>}
+                                                    {t.resolvedByName ? <span style={{ color: '#10b981', fontWeight: 800 }}><FaRobot style={{ display: 'inline' }} /> {t.resolvedByName}</span> : <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Unassigned...</span>}
                                                 </td>
                                             </tr>
-                                        );
+                                        )
                                     })}
-                                    {filteredTickets.length === 0 && (
-                                        <tr>
-                                            <td colSpan="7" style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8', fontSize: '1rem' }}>
-                                                Zero active tickets found in the network.
-                                            </td>
-                                        </tr>
-                                    )}
+                                    {filteredTickets.length === 0 && <tr><td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8', fontWeight: 600 }}>Zero anomalies detected in sector search.</td></tr>}
                                 </tbody>
                             </table>
                         </div>
                     </>
                 )}
-
-                <div style={{ textAlign: 'center', padding: '2rem', fontSize: '.75rem', color: '#94a3b8', letterSpacing: '.03em', fontWeight: 500 }}>
-                    CPECC IT Service Network &nbsp;·&nbsp; Engineered by <span style={{ color: '#64748b', fontWeight: 700 }}>Sandeep Pillai</span>
-                </div>
             </div>
         </div>
     );
