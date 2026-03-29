@@ -127,6 +127,7 @@ function QRScannerApp() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [offices, setOffices] = useState([]);
+    const [backendStatus, setBackendStatus] = useState('checking'); // checking, online, offline
 
     useEffect(() => {
         const id = 'ai-light-theme-css';
@@ -147,6 +148,11 @@ function QRScannerApp() {
                 console.error('[AI DEBUGLOG] Office Fetch Error:', err.message);
                 setOffices([]);
             });
+
+        // Connectivity health check
+        axios.get(`${API_BASE}/api/health`)
+            .then(() => setBackendStatus('online'))
+            .catch(() => setBackendStatus('offline'));
     }, []);
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -159,7 +165,11 @@ function QRScannerApp() {
             await axios.post(`${API_URL}/new`, formData);
             setSubmitted(true);
         } catch (err) {
-            setError('System link failed. Please retry transmission.');
+            if (!err.response) {
+                setError(`Network Link Failure: Backend @ ${API_BASE} is unreachable. Check your tunnel/ngrok status.`);
+            } else {
+                setError('Transmission failed. Server error.');
+            }
         } finally {
             setLoading(false);
         }
@@ -218,6 +228,12 @@ function QRScannerApp() {
                 <p style={{ color: '#64748b', fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Intelligent Support Routing System
                 </p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: backendStatus === 'online' ? '#10b981' : (backendStatus === 'offline' ? '#ef4444' : '#94a3b8') }}>
+                        Service Link: {backendStatus.toUpperCase()}
+                    </span>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: backendStatus === 'online' ? '#10b981' : (backendStatus === 'offline' ? '#ef4444' : '#94a3b8'), animation: backendStatus === 'online' ? 'pulse 2s infinite' : 'none' }}></div>
+                </div>
             </div>
 
             <div className="qr-card">

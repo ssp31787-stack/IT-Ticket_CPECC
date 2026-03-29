@@ -158,6 +158,7 @@ function AdminPortal() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [activeTab, setActiveTab] = useState('dashboard');
     const [lastRefresh, setLastRefresh] = useState(null);
+    const [backendStatus, setBackendStatus] = useState('checking'); // checking, online, offline
     const refreshIntervalRef = useRef(null);
 
     useEffect(() => {
@@ -169,7 +170,17 @@ function AdminPortal() {
         }
         const token = localStorage.getItem('adminToken');
         if (token) { setIsLoggedIn(true); fetchTickets(); }
+        checkHealth();
     }, []);
+
+    const checkHealth = async () => {
+        try {
+            await axios.get(`${API_BASE}/api/health`);
+            setBackendStatus('online');
+        } catch {
+            setBackendStatus('offline');
+        }
+    };
 
     useEffect(() => {
         if (isLoggedIn) refreshIntervalRef.current = setInterval(fetchTickets, 15000);
@@ -185,7 +196,13 @@ function AdminPortal() {
                 localStorage.setItem('adminRole', res.data.user.role);
                 setIsLoggedIn(true); fetchTickets();
             }
-        } catch (err) { setError(err.response?.data?.error || 'Invalid Credentials'); }
+        } catch (err) {
+            if (!err.response) {
+                setError(`Network Link Failure: Backend @ ${API_BASE} is unreachable. Check your tunnel/ngrok status.`);
+            } else {
+                setError(err.response.data?.error || 'Invalid Identity/Security Passkey');
+            }
+        }
     };
 
     const fetchTickets = async () => {
@@ -246,7 +263,12 @@ function AdminPortal() {
                     </div>
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                         <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>IT AI Security Core</h2>
-                        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Authentication Required</span>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                            <span style={{ fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: backendStatus === 'online' ? '#10b981' : (backendStatus === 'offline' ? '#ef4444' : '#94a3b8') }}>
+                                Backend Link: {backendStatus.toUpperCase()}
+                            </span>
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: backendStatus === 'online' ? '#10b981' : (backendStatus === 'offline' ? '#ef4444' : '#94a3b8'), animation: backendStatus === 'online' ? 'pulse 2s infinite' : 'none' }}></div>
+                        </div>
                     </div>
 
                     {error && <div className="error-msg">{error}</div>}
