@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaCheckCircle, FaSpinner } from 'react-icons/fa';
 
-const API_URL = `/api/tickets`;
+const API_URL = (import.meta.env.VITE_API_URL || '') + '/api/tickets';
 
 function QRScannerApp() {
     const [formData, setFormData] = useState({ name: '', userPhone: '', projectName: '', office: '', complaint: '' });

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { FaUserShield, FaSignOutAlt, FaFilter, FaDownload, FaCog, FaList, FaSync, FaServer, FaDesktop, FaNetworkWired, FaDatabase } from 'react-icons/fa';
 import AdminSettings from './AdminSettings';
 
-const API_URL = `/api`;
+const API_URL = (import.meta.env.VITE_API_URL || '') + '/api';
 
 // ─── Glowing Data Node Component ─────────────────────────────────────────────
 function DataNode({ style, icon: Icon, delay }) {

@@ -6,7 +6,7 @@ import './index.css';
 
 function App() {
     return (
-        <Router>
+        <Router basename="/IT-Ticket_CPECC">
             <Routes>
                 <Route path="/" element={<QRScannerApp />} />
                 <Route path="/admin/*" element={<AdminPortal />} />

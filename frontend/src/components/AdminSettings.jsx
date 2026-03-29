@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { FaBuilding, FaUserPlus, FaSpinner, FaCheckCircle, FaWhatsapp, FaSync, FaPlug, FaIdCard } from 'react-icons/fa';
 
-const API_URL = `/api/settings`;
+const API_URL = (import.meta.env.VITE_API_URL || '') + '/api/settings';
 
 function AdminSettings() {
     const [offices, setOffices] = useState([]);
