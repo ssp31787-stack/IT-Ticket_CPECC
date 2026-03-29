@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Production builds
+frontend/dist/
+dist/
+
+# Environment variables
+.env
+backend/.env
+
+# Database files
+*.sqlite
+*.db
+backend/database.sqlite
+
+# Logs
+logs/
+*.log
+
+# Misc
+.DS_Store
+tunnel-id.txt
+
+# Exports
+exports/

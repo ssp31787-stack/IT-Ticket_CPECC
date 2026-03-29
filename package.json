@@ -1,0 +1,18 @@
+{
+  "name": "qr-ticketing",
+  "version": "1.0.0",
+  "description": "QR Ticketing Startup Script",
+  "main": "index.js",
+  "scripts": {
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm run dev -- --host",
+    "start:services": "npx concurrently -c \"blue,magenta,green,cyan,yellow\" -n \"backend,frontend,n8n,evolution,n8n-tunnel\" \"npm run start:backend\" \"npm run start:frontend\" \"npx cross-env N8N_BLOCK_ENV_ACCESS_IN_NODE=false EVOLUTION_API_URL=http://localhost:8080 EVOLUTION_API_KEY=429683C4C977415CAAFCCE10F7D57E11 EVOLUTION_INSTANCE=IT-Ticket-System BACKEND_API_URL=http://localhost:5000 n8n start\" \"cd C:\\\\Users\\\\cpeccadmin\\\\AppData\\\\Roaming\\\\npm\\\\node_modules\\\\evolution-api && npm run start\" \"npx serve -s webhook\"",
+    "start": "npm run start:services"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^11.0.0"
+  }
+}
