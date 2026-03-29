@@ -1,8 +1,10 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaBuilding, FaUserPlus, FaSpinner, FaCheckCircle, FaWhatsapp, FaSync, FaPlug, FaIdCard } from 'react-icons/fa';
+import { FaBuilding, FaUserPlus, FaSpinner, FaCheckCircle, FaWhatsapp, FaSync, FaPlug, FaIdCard, FaCogs, FaRobot } from 'react-icons/fa';
 
-const API_URL = (import.meta.env.VITE_API_URL || '') + '/api/settings';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://operatic-jerrod-gamily.ngrok-free.dev';
+const API_URL = API_BASE + '/api/settings';
+console.log('[AI DEBUGLOG] Admin Settings API Base:', API_BASE);
 
 function AdminSettings() {
     const [offices, setOffices] = useState([]);

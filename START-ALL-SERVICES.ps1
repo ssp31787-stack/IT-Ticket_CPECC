@@ -1,10 +1,12 @@
-﻿# ============================================================
+﻿param([switch]$Headless)
+
+# ============================================================
 #  CPECC IT SERVICE DESK - One-Click Startup
-#  Right-click -> "Run with PowerShell"
 # ============================================================
 $HOST.UI.RawUI.WindowTitle = "CPECC IT Service Desk - All Services"
 
 $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
+
 
 $projectRoot = $PSScriptRoot
 $backendDir = "$projectRoot\backend"
@@ -140,46 +142,51 @@ function Get-ServiceStatus($port) {
 Write-Host ""
 Write-Host "Press CTRL+C to stop all services." -ForegroundColor Red
 
-try {
-    while ($true) {
-        $publicUrl = Get-PublicURL
-        Write-Banner $publicUrl
+if (-not $Headless) {
+    try {
+        while ($true) {
+            $publicUrl = Get-PublicURL
+            Write-Banner $publicUrl
 
-        Write-Host "  SERVICE STATUS" -ForegroundColor DarkGray
-        Write-Host "  -----------------------------------------------" -ForegroundColor DarkGray
-        Write-Host ("  Evolution API (8080) : " + (Get-ServiceStatus 8080)) -ForegroundColor $(if ((Get-ServiceStatus 8080) -eq "[RUNNING]") { "Green" } else { "Yellow" })
-        Write-Host ("  Backend+Frontend (5000) : " + (Get-ServiceStatus 5000)) -ForegroundColor $(if ((Get-ServiceStatus 5000) -eq "[RUNNING]") { "Green" } else { "Yellow" })
-        Write-Host ("  Cloudflare Tunnel   : " + $(if ($publicUrl -ne "(generating...)") { "[ACTIVE] $publicUrl" } else { "[STARTING]" })) -ForegroundColor $(if ($publicUrl -ne "(generating...)") { "Green" } else { "Yellow" })
+            Write-Host "  SERVICE STATUS" -ForegroundColor DarkGray
+            Write-Host "  -----------------------------------------------" -ForegroundColor DarkGray
+            Write-Host ("  Evolution API (8080) : " + (Get-ServiceStatus 8080)) -ForegroundColor $(if ((Get-ServiceStatus 8080) -eq "[RUNNING]") { "Green" } else { "Yellow" })
+            Write-Host ("  Backend+Frontend (5000) : " + (Get-ServiceStatus 5000)) -ForegroundColor $(if ((Get-ServiceStatus 5000) -eq "[RUNNING]") { "Green" } else { "Yellow" })
+            Write-Host ("  Cloudflare Tunnel   : " + $(if ($publicUrl -ne "(generating...)") { "[ACTIVE] $publicUrl" } else { "[STARTING]" })) -ForegroundColor $(if ($publicUrl -ne "(generating...)") { "Green" } else { "Yellow" })
 
-        Write-Host ""
-        Write-Host "  -- Backend Log (last 5 lines) --" -ForegroundColor DarkCyan
-        if (Test-Path "$logDir\backend.log") {
-            Get-Content "$logDir\backend.log" -Tail 5 | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
-        }
+            Write-Host ""
+            Write-Host "  -- Backend Log (last 5 lines) --" -ForegroundColor DarkCyan
+            if (Test-Path "$logDir\backend.log") {
+                Get-Content "$logDir\backend.log" -Tail 5 | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
+            }
 
-        Write-Host ""
-        Write-Host "  -- Tunnel Log (last 3 lines) --" -ForegroundColor DarkCyan
-        if (Test-Path "$logDir\tunnel.log") {
-            Get-Content "$logDir\tunnel.log" -Tail 3 | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
-        }
+            Write-Host ""
+            Write-Host "  -- Tunnel Log (last 3 lines) --" -ForegroundColor DarkCyan
+            if (Test-Path "$logDir\tunnel.log") {
+                Get-Content "$logDir\tunnel.log" -Tail 3 | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
+            }
 
-        Write-Host ""
-        Write-Host "  Logs: $logDir" -ForegroundColor DarkGray
-        Write-Host "  Press CTRL+C to stop everything." -ForegroundColor DarkGray
+            Write-Host ""
+            Write-Host "  Logs: $logDir" -ForegroundColor DarkGray
+            Write-Host "  Press CTRL+C to stop everything." -ForegroundColor DarkGray
 
-        Start-Sleep -Seconds 10
-    }
-}
-finally {
-    Write-Host ""
-    Write-Host "Stopping all services..." -ForegroundColor Red
-    Get-Job -Name "EvolutionAPI", "Backend", "NgrokTunnel" -ErrorAction SilentlyContinue | Stop-Job -PassThru | Remove-Job
-    Get-Process -Name "cloudflared", "devtunnel", "ngrok" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-    @(5000, 8080) | ForEach-Object {
-        (Get-NetTCPConnection -LocalPort $_ -ErrorAction SilentlyContinue).OwningProcess | ForEach-Object {
-            try { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue } catch {}
+            Start-Sleep -Seconds 10
         }
     }
-    Write-Host "All services stopped." -ForegroundColor Green
+    finally {
+        Write-Host ""
+        Write-Host "Stopping all services..." -ForegroundColor Red
+        Get-Job -Name "EvolutionAPI", "Backend", "NgrokTunnel" -ErrorAction SilentlyContinue | Stop-Job -PassThru | Remove-Job
+        Get-Process -Name "cloudflared", "devtunnel", "ngrok" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        @(5000, 8080) | ForEach-Object {
+            (Get-NetTCPConnection -LocalPort $_ -ErrorAction SilentlyContinue).OwningProcess | ForEach-Object {
+                try { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue } catch {}
+            }
+        }
+        Write-Host "All services stopped." -ForegroundColor Green
+    }
+} else {
+    Write-Host "Running in Headless mode. Services are active in background." -ForegroundColor Green
 }
+
 

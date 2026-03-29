@@ -3,7 +3,9 @@ import axios from 'axios';
 import { FaUserShield, FaSignOutAlt, FaFilter, FaDownload, FaCog, FaList, FaSync, FaServer, FaDesktop, FaNetworkWired, FaDatabase, FaRobot, FaMicrochip, FaCogs } from 'react-icons/fa';
 import AdminSettings from './AdminSettings';
 
-const API_URL = (import.meta.env.VITE_API_URL || '') + '/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://operatic-jerrod-gamily.ngrok-free.dev';
+const API_URL = API_BASE + '/api';
+console.log('[AI DEBUGLOG] Admin Portal API Base:', API_BASE);
 
 const STATUS_CONFIG = {
     'Pending': { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300', dot: '🟡' },
@@ -180,6 +182,7 @@ function AdminPortal() {
             const res = await axios.post(`${API_URL}/admin/login`, credentials);
             if (res.data.success) {
                 localStorage.setItem('adminToken', res.data.token);
+                localStorage.setItem('adminRole', res.data.user.role);
                 setIsLoggedIn(true); fetchTickets();
             }
         } catch (err) { setError(err.response?.data?.error || 'Invalid Credentials'); }

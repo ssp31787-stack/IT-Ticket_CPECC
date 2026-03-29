@@ -23,9 +23,7 @@ Set WshShell = Nothing
 "@
 $vbsScript | Out-File $vbsPath -Encoding Default
 
-Write-Host "2. Adding shortcut to Windows Startup folder..." -ForegroundColor Yellow
-
-# Create the Shortcut in shell:startup
+# 2. Adding shortcut to Windows Startup folder...
 $WshShell = New-Object -ComObject WScript.Shell
 $Shortcut = $WshShell.CreateShortcut($shortcutPath)
 $Shortcut.TargetPath = "wscript.exe"
@@ -47,4 +45,3 @@ Write-Host "   To uninstall this in the future, simply delete the shortcut:" -Fo
 Write-Host "   $shortcutPath" -ForegroundColor DarkGray
 Write-Host "=============================================================" -ForegroundColor Green
 Write-Host ""
-Read-Host "Press Enter to exit"

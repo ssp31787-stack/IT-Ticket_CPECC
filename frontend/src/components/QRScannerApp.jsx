@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaCheckCircle, FaSpinner, FaRobot, FaMicrochip, FaNetworkWired, FaTools } from 'react-icons/fa';
 
-const API_URL = (import.meta.env.VITE_API_URL || '') + '/api/tickets';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://operatic-jerrod-gamily.ngrok-free.dev';
+const API_URL = API_BASE + '/api/tickets';
+console.log('[AI DEBUGLOG] QR Portal API Base:', API_BASE);
 
 const AI_LIGHT_THEME_CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
@@ -135,9 +137,16 @@ function QRScannerApp() {
             document.head.appendChild(tag);
         }
 
-        axios.get((import.meta.env.VITE_API_URL || '') + `/api/settings/offices`)
-            .then(res => setOffices(res.data.offices || []))
-            .catch(() => setOffices([]));
+        console.log('[AI DEBUGLOG] Fetching offices from:', API_BASE + '/api/settings/offices');
+        axios.get(API_BASE + `/api/settings/offices`)
+            .then(res => {
+                console.log('[AI DEBUGLOG] Offices received:', res.data.offices);
+                setOffices(res.data.offices || []);
+            })
+            .catch(err => {
+                console.error('[AI DEBUGLOG] Office Fetch Error:', err.message);
+                setOffices([]);
+            });
     }, []);
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
