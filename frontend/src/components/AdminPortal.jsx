@@ -1,298 +1,287 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaUserShield, FaSignOutAlt, FaFilter, FaDownload, FaCog, FaList, FaSync, FaServer, FaDesktop, FaNetworkWired, FaDatabase } from 'react-icons/fa';
+import { FaUserShield, FaSignOutAlt, FaFilter, FaDownload, FaCog, FaList, FaSync, FaServer, FaDesktop, FaNetworkWired, FaDatabase, FaWifi, FaLaptopCode } from 'react-icons/fa';
 import AdminSettings from './AdminSettings';
 
 const API_URL = (import.meta.env.VITE_API_URL || '') + '/api';
 
-// ─── Glowing Data Node Component ─────────────────────────────────────────────
-function DataNode({ style, icon: Icon, delay }) {
+// ─── Status Config ──────────────────────────────────────────────────────────
+const STATUS_CONFIG = {
+    'Pending': { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300', dot: '🟡' },
+    'Resolved': { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300', dot: '✅' },
+    'Escalated': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', dot: '🔴' },
+    'Restart': { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300', dot: '🔄' },
+    'AnyDesk Request': { bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-300', dot: '🖥️' },
+    'Updated': { bg: 'bg-cyan-100', text: 'text-cyan-700', border: 'border-cyan-300', dot: '📋' },
+};
+
+function getStatusStyle(status) {
+    return STATUS_CONFIG[status] || { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300', dot: '📋' };
+}
+
+// ─── Animated IT Components ──────────────────────────────────────────────────
+function AnimatedNode({ icon: Icon, style, animClass }) {
     return (
-        <div className="it-data-node" style={{ ...style, animationDelay: delay }}>
-            <div className="node-ring"></div>
+        <div className={`it-node ${animClass}`} style={style}>
+            <div className="node-glow"></div>
             <Icon />
         </div>
     );
 }
 
-// ─── Status Config ──────────────────────────────────────────────────────────
-const STATUS_CONFIG = {
-    'Pending': { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/30', dot: '🟡' },
-    'Resolved': { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30', dot: '✅' },
-    'Escalated': { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/30', dot: '🔴' },
-    'Restart': { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/30', dot: '🔄' },
-    'AnyDesk Request': { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/30', dot: '🖥️' },
-    'Updated': { bg: 'bg-cyan-500/10', text: 'text-cyan-400', border: 'border-cyan-500/30', dot: '📋' },
-};
+// ─── Beautiful Light CSS Injected Once ──────────────────────────────────────
+const LIGHT_ANIM_STYLES = `
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap');
 
-function getStatusStyle(status) {
-    return STATUS_CONFIG[status] || { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/30', dot: '📋' };
-}
-
-// ─── Advanced CSS Injected Once ─────────────────────────────────────────────
-const CYBER_STYLES = `
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
-
-.cyber-root * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
-.cyber-mono { font-family: 'JetBrains Mono', monospace; }
+.portal-root * { font-family: 'Outfit', sans-serif; box-sizing: border-box; }
+.portal-mono { font-family: 'Fira Code', monospace; }
 
 /* ── Deep Tech Background ── */
-.cyber-bg {
+.portal-bg {
     min-height: 100vh;
-    background-color: #020617; /* Slate 950 */
-    background-image: 
-        radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.08), transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+    background: #f8fafc; /* Slate 50 */
     position: relative;
     overflow: hidden;
-    color: #f8fafc;
+    color: #0f172a;
+    display: flex;
+    justify-content: center;
 }
 
-/* ── Animated Grid Lines ── */
-.cyber-grid {
+/* ── Animated Gradient Blobs ── */
+.portal-bg::before, .portal-bg::after {
+    content: ''; position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0;
+    opacity: 0.6;
+}
+.portal-bg::before {
+    width: 600px; height: 600px; background: rgba(56, 189, 248, 0.25); /* Sky blue */
+    top: -150px; left: -100px;
+    animation: blob-drift 12s infinite alternate ease-in-out;
+}
+.portal-bg::after {
+    width: 500px; height: 500px; background: rgba(167, 139, 250, 0.2); /* Violet */
+    bottom: -150px; right: -100px;
+    animation: blob-drift 15s infinite alternate-reverse ease-in-out;
+}
+@keyframes blob-drift { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(100px, 80px) scale(1.1); } }
+
+/* ── Grid Pattern ── */
+.it-grid {
     position: absolute; inset: 0; z-index: 0;
-    background-size: 40px 40px;
+    background-size: 50px 50px;
     background-image: 
-        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
-    mask-image: linear-gradient(to bottom, transparent, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent);
-    -webkit-mask-image: linear-gradient(to bottom, transparent, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent);
+        linear-gradient(to right, rgba(148,163,184,0.15) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148,163,184,0.15) 1px, transparent 1px);
+    mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 30%, transparent 80%);
 }
 
-/* ── Data Streams (Fiber Optics effect) ── */
-.data-stream {
+/* ── Animated Data Packets (Line Beams) ── */
+.data-beam {
     position: absolute;
-    background: linear-gradient(90deg, transparent, rgba(56,189,248,0.8), transparent);
-    height: 1px; width: 150px;
-    opacity: 0;
-    z-index: 1;
-}
-.stream-1 { top: 20%; left: -150px; animation: streamH 6s infinite linear 1s; }
-.stream-2 { top: 60%; left: -150px; animation: streamH 8s infinite linear 3s; background: linear-gradient(90deg, transparent, rgba(167,139,250,0.8), transparent); }
-.stream-3 { top: 85%; left: -150px; animation: streamH 7s infinite linear 5s; }
-
-.stream-v {
-    position: absolute;
-    background: linear-gradient(180deg, transparent, rgba(56,189,248,0.8), transparent);
-    width: 1px; height: 150px;
+    background: linear-gradient(90deg, transparent, rgba(14,165,233,0.8), transparent);
+    height: 2px; width: 200px;
     opacity: 0; z-index: 1;
+    filter: drop-shadow(0 0 8px rgba(14,165,233,0.6));
 }
-.stream-4 { left: 15%; top: -150px; animation: streamV 9s infinite linear 2s; }
-.stream-5 { left: 75%; top: -150px; animation: streamV 7s infinite linear 4s; background: linear-gradient(180deg, transparent, rgba(52,211,153,0.8), transparent); }
+.beam-1 { top: 20%; left: -200px; animation: beamH 6s infinite linear 1s; }
+.beam-2 { top: 75%; left: -200px; animation: beamH 8s infinite linear 3s; background: linear-gradient(90deg, transparent, rgba(139,92,246,0.8), transparent); }
+.beam-v {
+    position: absolute; width: 2px; height: 200px;
+    background: linear-gradient(180deg, transparent, rgba(14,165,233,0.8), transparent);
+    opacity: 0; z-index: 1; filter: drop-shadow(0 0 8px rgba(14,165,233,0.6));
+}
+.beam-3 { left: 25%; top: -200px; animation: beamV 7s infinite linear 2s; }
+.beam-4 { left: 80%; top: -200px; animation: beamV 9s infinite linear 5s; background: linear-gradient(180deg, transparent, rgba(16,185,129,0.8), transparent); }
 
-@keyframes streamH { 0% { transform: translateX(0); opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { transform: translateX(110vw); opacity:0; } }
-@keyframes streamV { 0% { transform: translateY(0); opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { transform: translateY(110vh); opacity:0; } }
+@keyframes beamH { 0% { transform: translateX(0); opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { transform: translateX(110vw); opacity:0; } }
+@keyframes beamV { 0% { transform: translateY(0); opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { transform: translateY(110vh); opacity:0; } }
 
-/* ── Data Nodes ── */
-.it-data-node {
+/* ── Floating IT Nodes ── */
+.it-node {
     position: absolute;
-    width: 48px; height: 48px;
-    background: rgba(15,23,42,0.8);
-    border: 1px solid rgba(56,189,248,0.3);
-    border-radius: 12px;
+    width: 56px; height: 56px;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(14,165,233,0.3);
+    border-radius: 16px;
     display: flex; align-items: center; justify-content: center;
-    color: #38bdf8; font-size: 1.2rem;
-    box-shadow: 0 0 20px rgba(56,189,248,0.1);
+    color: #0284c7; font-size: 1.5rem;
+    box-shadow: 0 10px 25px rgba(14,165,233,0.15);
     z-index: 2;
-    animation: node-float 6s infinite ease-in-out alternate;
 }
-.node-ring {
-    position: absolute; inset: -4px;
-    border-radius: 14px;
-    border: 1px solid rgba(56,189,248,0.4);
-    animation: ring-pulse 3s infinite;
+.node-glow {
+    position: absolute; inset: -3px;
+    border-radius: 18px; border: 2px solid rgba(14,165,233,0.5);
+    animation: ring-expand 3s infinite;
 }
-@keyframes node-float { from { transform: translateY(0px); } to { transform: translateY(-15px); } }
-@keyframes ring-pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.3); opacity: 0; } }
+@keyframes ring-expand { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
+
+.float-slow { animation: hoverMove 6s infinite ease-in-out alternate; }
+.float-med  { animation: hoverMove 5s infinite ease-in-out alternate-reverse; }
+.float-fast { animation: hoverMove 4s infinite ease-in-out alternate; }
+@keyframes hoverMove { from { transform: translateY(0px) rotate(0deg); } to { transform: translateY(-20px) rotate(5deg); } }
 
 /* ── Login Glass Card ── */
-.cyber-card {
-    background: rgba(15, 23, 42, 0.5); /* Slate 900 with transparency */
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-top: 1px solid rgba(255,255,255,0.15);
-    border-radius: 1.5rem;
-    padding: 2.5rem;
-    width: 100%; max-width: 420px;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), inset 0 0 20px rgba(56,189,248,0.05);
+.glass-card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 1.5rem; padding: 2.5rem;
+    width: 100%; max-width: 440px;
+    box-shadow: 0 20px 40px -10px rgba(14,165,233,0.15), 0 0 0 1px rgba(14,165,233,0.05);
     position: relative; z-index: 10;
-    animation: card-in 0.8s cubic-bezier(0.16,1,0.3,1) both;
+    align-self: center; /* for login screen */
+    margin: 1.5rem;
+    animation: slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-.cyber-card::before {
-    content:''; position:absolute; inset:0; border-radius:1.5rem;
-    padding:1px; background:linear-gradient(135deg, rgba(56,189,248,0.4), transparent 60%);
-    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
-}
-@keyframes card-in { from { opacity:0; transform:translateY(30px) scale(0.95); } to { opacity:1; transform:none; } }
+@keyframes slide-up { from { opacity:0; transform:translateY(40px) scale(0.96); } to { opacity:1; transform:none; } }
 
-.login-title { font-size:1.75rem; font-weight:800; color:#f8fafc; text-align:center; margin-bottom:.25rem; letter-spacing:-0.03em; }
-.login-sub   { font-size:.8rem; color:#94a3b8; text-align:center; margin-bottom:2rem; letter-spacing:.08em; text-transform:uppercase; font-weight:600; }
+.login-title { font-size: 1.8rem; font-weight: 800; color: #0f172a; text-align: center; margin-bottom: .2rem; letter-spacing: -0.02em; }
+.login-sub   { font-size: .8rem; color: #64748b; text-align: center; margin-bottom: 2rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; }
 
-/* ── Cyber Profile/Shield ── */
-.shield-container {
-    display: flex; justify-content: center; margin-bottom: 1.5rem; position: relative;
-}
-.shield-icon {
-    font-size: 2.8rem; color: #38bdf8;
-    filter: drop-shadow(0 0 12px rgba(56,189,248,0.6));
-    animation: shield-glow 3s infinite alternate;
-}
-@keyframes shield-glow { from { filter: drop-shadow(0 0 8px rgba(56,189,248,0.4)); } to { filter: drop-shadow(0 0 20px rgba(56,189,248,0.8)); } }
+/* ── Giant Central Shield Pulse ── */
+.shield-wrapper { display: flex; justify-content: center; margin-bottom: 1.5rem; position: relative; }
+.shield-icon { font-size: 3.5rem; color: #0ea5e9; position: relative; z-index: 2; animation: icon-float 4s infinite alternate ease-in-out; }
+.shield-pulse { position: absolute; width: 60px; height: 60px; background: rgba(14,165,233,0.2); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: giant-pulse 3s infinite; }
+@keyframes icon-float { from { transform: translateY(-3px); filter: drop-shadow(0 5px 10px rgba(14,165,233,0.3)); } to { transform: translateY(3px); filter: drop-shadow(0 15px 25px rgba(14,165,233,0.4)); } }
+@keyframes giant-pulse { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; } }
 
 /* ── Inputs ── */
-.cyber-input {
-    width: 100%; padding: .85rem 1rem;
-    background: rgba(2, 6, 23, 0.6);
-    border: 1px solid rgba(71,85,105,0.4);
-    border-radius: .75rem; font-size:.95rem; color: #f8fafc;
-    transition: all .3s; outline: none;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+.glass-input {
+    width: 100%; padding: .9rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: .75rem; font-size:.95rem; color: #0f172a;
+    transition: all .2s; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
-.cyber-input:focus {
-    border-color: #38bdf8;
-    background: rgba(15,23,42,0.8);
-    box-shadow: 0 0 0 3px rgba(56,189,248,0.15), inset 0 2px 4px rgba(0,0,0,0.2);
+.glass-input:focus {
+    border-color: #0ea5e9; background: #fff;
+    box-shadow: 0 0 0 4px rgba(14,165,233,0.15), inset 0 2px 4px rgba(0,0,0,0.02);
 }
-.cyber-label { display:block; font-size:.78rem; font-weight:600; color:#94a3b8; margin-bottom:.4rem; letter-spacing:.03em; text-transform:uppercase; }
+.glass-label { display:block; font-size:.8rem; font-weight:600; color:#475569; margin-bottom:.4rem; letter-spacing:.02em; }
 
-/* ── Cyber Button ── */
-.cyber-btn {
-    width: 100%; padding: .85rem; margin-top: 1rem;
+/* ── Cyber Hover Button ── */
+.animated-btn {
+    width: 100%; padding: .9rem; margin-top: .5rem;
     background: linear-gradient(135deg, #0284c7 0%, #3b82f6 100%);
-    color: #fff; font-weight: 700; font-size: .95rem; letter-spacing: .05em;
+    color: #fff; font-weight: 700; font-size: 1rem; letter-spacing: .02em;
     border: none; border-radius: .75rem; cursor: pointer;
     position: relative; overflow: hidden;
-    box-shadow: 0 4px 15px rgba(2,132,199,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
-    transition: all .2s;
+    box-shadow: 0 8px 20px rgba(2,132,199,0.3);
+    transition: all .2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.cyber-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(2,132,199,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
+.animated-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(2,132,199,0.4);
 }
-.cyber-btn::after {
-    content:''; position:absolute; top:0; left:-100%; width:50%; height:100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    animation: btn-sweep 3s infinite;
+.animated-btn:active { transform: translateY(0); }
+.animated-btn::after {
+    content:''; position:absolute; top:0; left:-100%; width:40%; height:100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: wave-slide 2.5s infinite;
 }
-@keyframes btn-sweep { 0% { left: -100%; } 20%, 100% { left: 200%; } }
+@keyframes wave-slide { 0% { left: -100%; } 20%, 100% { left: 200%; } }
 
 /* ── Error Box ── */
-.cyber-error {
-    background: rgba(225,29,72,0.15); border: 1px solid rgba(225,29,72,0.3);
-    color: #fda4af; border-radius: .5rem; padding: .75rem; font-size: .85rem;
-    text-align: center; margin-bottom: 1.5rem; backdrop-filter: blur(4px);
-}
+.error-msg { background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; border-radius: .6rem; padding: .8rem; font-size: .85rem; text-align: center; margin-bottom: 1.5rem; font-weight: 500; }
 
 /* ── Dashboard Layout ── */
-.dash-root { padding: 1.5rem; min-height: 100vh; display:flex; justify-content:center; }
-.dash-container { width: 100%; max-width: 1400px; position:relative; z-index:10; }
+.dash-content { width: 100%; max-width: 1400px; padding: 1.5rem; position: relative; z-index: 10; margin: 0 auto; }
 
 .dash-header {
-    background: rgba(15,23,42,0.6); backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.8);
     border-radius: 1.25rem; padding: 1.25rem 1.75rem;
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 1.5rem;
+    box-shadow: 0 10px 30px rgba(14,165,233,0.08); margin-bottom: 1.5rem;
 }
-.dash-title { font-size:1.4rem; font-weight:800; color:#f8fafc; letter-spacing:-0.02em; }
-.dash-sub { font-size:.75rem; color:#64748b; margin-top:.2rem; font-weight:500; }
+.dash-header-title { font-size:1.5rem; font-weight:800; color:#0f172a; letter-spacing:-0.02em; }
+.dash-header-sub { font-size:.75rem; color:#64748b; margin-top:.2rem; font-weight:500; }
 
-/* ── Dashboard Tabs & Buttons ── */
-.tab-btn {
-    display:flex; align-items:center; gap:.5rem; padding:.5rem 1.25rem; border-radius:.75rem;
+/* ── Dashboard Buttons ── */
+.nav-btn {
+    display:flex; align-items:center; gap:.5rem; padding:.55rem 1.25rem; border-radius:.75rem;
     font-weight:600; font-size:.85rem; cursor:pointer; transition:all .2s; border:1px solid transparent;
-    background: transparent; color: #94a3b8;
+    background: transparent; color: #64748b;
 }
-.tab-btn:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
-.tab-btn.active { 
-    background: rgba(56,189,248,0.15); color: #38bdf8; 
-    border-color: rgba(56,189,248,0.3); box-shadow: 0 0 15px rgba(56,189,248,0.1); 
+.nav-btn:hover { background: #f1f5f9; color: #1e293b; }
+.nav-btn.active {
+    background: #e0f2fe; color: #0284c7; border-color: #bae6fd;
+    box-shadow: 0 4px 12px rgba(14,165,233,0.1);
 }
 
-.icon-btn {
-    display:flex; align-items:center; justify-content:center; padding:.5rem .75rem;
-    border-radius:.75rem; border:1px solid rgba(255,255,255,0.1);
-    background:rgba(15,23,42,0.6); color:#94a3b8; cursor:pointer; transition:all .2s;
+.ico-btn {
+    display:flex; align-items:center; justify-content:center; padding:.55rem .8rem;
+    border-radius:.75rem; border:1px solid #e2e8f0;
+    background:#fff; color:#64748b; cursor:pointer; transition:all .2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
-.icon-btn:hover { background:rgba(255,255,255,0.1); color:#e2e8f0; }
+.ico-btn:hover { background:#f1f5f9; color:#0284c7; border-color:#cbd5e1; }
 
-.logout-btn {
-    display:flex; align-items:center; gap:.5rem; padding:.5rem 1rem; border-radius:.75rem;
-    border:1px solid rgba(225,29,72,0.3); background:rgba(225,29,72,0.1); color:#f43f5e;
+.kill-btn {
+    display:flex; align-items:center; gap:.5rem; padding:.55rem 1.1rem; border-radius:.75rem;
+    border:1px solid #fecaca; background:#fef2f2; color:#e11d48;
     font-weight:600; font-size:.85rem; cursor:pointer; transition:all .2s;
 }
-.logout-btn:hover { background:rgba(225,29,72,0.2); box-shadow:0 0 15px rgba(225,29,72,0.2); }
+.kill-btn:hover { background:#ffe4e6; box-shadow:0 4px 12px rgba(225,29,72,0.15); transform:translateY(-1px); }
 
 /* ── Stats ── */
 .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.25rem; margin-bottom:1.5rem; }
 @media(max-width:800px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
-.stat-card {
-    background: rgba(15,23,42,0.5); backdrop-filter: blur(12px);
+.stat-box {
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(16px);
     border-radius: 1.25rem; padding: 1.5rem; text-align: center;
-    border: 1px solid rgba(255,255,255,0.05);
-    border-top: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    transition: transform .2s, box-shadow .2s; position:relative; overflow:hidden;
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 8px 20px rgba(14,165,233,0.06);
+    transition: all .3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative; overflow: hidden;
 }
-.stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
-.stat-card::after {
-    content:''; position:absolute; bottom:0; left:0; width:100%; height:3px;
-    background: var(--stat-color); opacity: 0.7;
-}
-.stat-num { font-size:2.2rem; font-weight:800; font-family:'JetBrains Mono', monospace; line-height:1; margin-bottom:.5rem; }
-.stat-lbl { font-size:.7rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.1em; }
+.stat-box:hover { transform: translateY(-5px); box-shadow: 0 15px 30px var(--hover-shadow); }
+.stat-box::before { content:''; position:absolute; top:0; left:0; width:100%; height:4px; background: var(--stat-color); }
+.stat-val { font-size:2.4rem; font-weight:800; font-family:'Fira Code', monospace; line-height:1; margin-bottom:.5rem; color: #0f172a; }
+.stat-lbl { font-size:.7rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.08em; }
 
 /* ── Controls Bar ── */
-.controls-bar {
-    background: rgba(15,23,42,0.6); backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.05); border-radius: 1.25rem;
+.filter-bar {
+    background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.8); border-radius: 1.25rem;
     padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem;
     align-items: center; justify-content: space-between; margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
 }
-.cyber-search {
-    flex:1; min-width:220px; padding:.65rem 1rem; border-radius:.75rem;
-    border:1px solid rgba(255,255,255,0.1); background:rgba(2,6,23,0.5);
-    color:#f8fafc; font-size:.85rem; outline:none; transition:all .2s;
+.text-filter {
+    flex:1; min-width:220px; padding:.7rem 1.1rem; border-radius:.75rem;
+    border:1px solid #cbd5e1; background:#f8fafc; color:#0f172a; font-size:.85rem; outline:none; transition:all .2s;
 }
-.cyber-search:focus { border-color:#38bdf8; box-shadow:0 0 0 2px rgba(56,189,248,0.2); }
-.cyber-select {
-    padding:.65rem 1rem; border-radius:.75rem;
-    border:1px solid rgba(255,255,255,0.1); background:rgba(2,6,23,0.8);
-    color:#f8fafc; font-size:.85rem; outline:none; cursor:pointer;
+.text-filter:focus { border-color:#0ea5e9; box-shadow:0 0 0 3px rgba(14,165,233,0.15); background:#fff; }
+.drop-filter {
+    padding:.7rem 1.1rem; border-radius:.75rem; border:1px solid #cbd5e1; background:#f8fafc; color:#0f172a; font-size:.85rem; outline:none; cursor:pointer;
 }
 
-.export-btn {
-    display:flex; align-items:center; gap:.5rem; padding:.65rem 1.25rem; border-radius:.75rem;
-    font-size:.85rem; font-weight:600; cursor:pointer;
-    border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:#cbd5e1;
-    transition:all .2s;
+.act-btn {
+    display:flex; align-items:center; gap:.5rem; padding:.7rem 1.25rem; border-radius:.75rem; font-size:.85rem; font-weight:600; cursor:pointer;
+    border:1px solid #e2e8f0; background:#fff; color:#475569; transition:all .2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
-.export-btn:hover { background:rgba(255,255,255,0.1); color:#fff; }
-.export-excel { background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.4); color:#34d399; }
-.export-excel:hover { background:rgba(16,185,129,0.25); box-shadow:0 0 15px rgba(16,185,129,0.2); color:#fff; }
+.act-btn:hover { background:#f8fafc; color:#0f172a; transform:translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+.act-excel { background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+.act-excel:hover { transform:translateY(-2px); box-shadow: 0 8px 20px rgba(16,185,129,0.4); color:#fff; }
 
-/* ── Table ── */
-.table-wrap {
-    background: rgba(15,23,42,0.6); backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.05); border-radius: 1.25rem;
-    overflow: hidden; overflow-x: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+/* ── Data Table ── */
+.data-card {
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.8); border-radius: 1.25rem;
+    overflow: hidden; overflow-x: auto; box-shadow: 0 10px 30px rgba(14,165,233,0.06);
 }
-.cyber-table { width:100%; border-collapse:collapse; font-size:.85rem; }
-.cyber-table thead { background: rgba(2,6,23,0.8); border-bottom: 1px solid rgba(255,255,255,0.1); }
-.cyber-table th { padding:1rem 1.25rem; color:#94a3b8; font-weight:700; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; text-align:left; }
-.cyber-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.05); transition: background .2s; }
-.cyber-table tbody tr:hover { background: rgba(255,255,255,0.03); }
-.cyber-table td { padding: 1rem 1.25rem; vertical-align: middle; color: #cbd5e1; }
-.ticket-id { color: #38bdf8; font-weight: 700; font-size: .8rem; }
-.status-pill { display:inline-flex; align-items:center; gap:.4rem; padding:.25rem .75rem; border-radius:999px; font-size:.75rem; font-weight:600; border:1px solid; }
+.ticket-table { width:100%; border-collapse:collapse; font-size:.85rem; }
+.ticket-table thead { background: #f1f5f9; border-bottom: 2px solid #e2e8f0; }
+.ticket-table th { padding:1.1rem 1.25rem; color:#475569; font-weight:700; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; text-align:left; }
+.ticket-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: all .2s; }
+.ticket-table tbody tr:hover { background: #f8fafc; }
+.ticket-table td { padding: 1.1rem 1.25rem; vertical-align: middle; color: #334155; }
+.id-badge { color: #0284c7; font-weight: 700; font-size: .85rem; padding: 0.2rem 0.6rem; background: #e0f2fe; border-radius: 0.4rem; border: 1px solid #bae6fd; }
+.state-pill { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .8rem; border-radius:999px; font-size:.75rem; font-weight:600; border:1px solid; }
 
-/* Footer */
-.cyber-footer { text-align:center; padding:1.5rem; font-size:.75rem; color:#475569; letter-spacing:.03em; }
-
-.fade-in { animation: fade-in .5s ease both; }
-@keyframes fade-in { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:none;} }
+.anim-fade { animation: fade-in .5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes fade-in { from{opacity:0;transform:translateY(15px);} to{opacity:1;transform:none;} }
 `;
 
 function AdminPortal() {
@@ -306,13 +295,12 @@ function AdminPortal() {
     const [lastRefresh, setLastRefresh] = useState(null);
     const refreshIntervalRef = useRef(null);
 
-    // Inject CSS once
     useEffect(() => {
-        const id = 'cyber-styles';
+        const id = 'light-anim-styles';
         if (!document.getElementById(id)) {
             const tag = document.createElement('style');
             tag.id = id;
-            tag.textContent = CYBER_STYLES;
+            tag.textContent = LIGHT_ANIM_STYLES;
             document.head.appendChild(tag);
         }
     }, []);
@@ -386,74 +374,74 @@ function AdminPortal() {
         } catch { alert('Export failed'); }
     };
 
-    // ── BACKGROUND ANIMATION ELEMENTS ────────────────────────────────────────
-    const BackgroundElements = () => (
+    // ── BACKGROUND ANIMATIONS ────────────────────────────────────────────────
+    const ItNetworkBackground = () => (
         <>
-            <div className="cyber-grid"></div>
-            {/* Horizontal Data Streams */}
-            <div className="data-stream stream-1"></div>
-            <div className="data-stream stream-2"></div>
-            <div className="data-stream stream-3"></div>
-            {/* Vertical Data Streams */}
-            <div className="stream-v stream-4"></div>
-            <div className="stream-v stream-5"></div>
+            <div className="it-grid"></div>
+            {/* Horizontal Beams */}
+            <div className="data-beam beam-1"></div>
+            <div className="data-beam beam-2"></div>
+            {/* Vertical Beams */}
+            <div className="beam-v beam-3"></div>
+            <div className="beam-v beam-4"></div>
 
-            {/* Floating IT Nodes */}
-            <DataNode icon={FaServer} style={{ top: '15%', left: '10%' }} delay="0s" />
-            <DataNode icon={FaNetworkWired} style={{ top: '25%', right: '15%' }} delay="1s" />
-            <DataNode icon={FaDatabase} style={{ bottom: '20%', left: '20%' }} delay="2s" />
-            <DataNode icon={FaDesktop} style={{ bottom: '30%', right: '10%' }} delay="0.5s" />
+            {/* Animated Hardware Nodes */}
+            <AnimatedNode icon={FaServer} style={{ top: '12%', left: '15%' }} animClass="float-slow" />
+            <AnimatedNode icon={FaNetworkWired} style={{ top: '25%', right: '18%' }} animClass="float-med" />
+            <AnimatedNode icon={FaDatabase} style={{ bottom: '15%', left: '22%' }} animClass="float-fast" />
+            <AnimatedNode icon={FaLaptopCode} style={{ bottom: '25%', right: '12%' }} animClass="float-slow" />
+            <AnimatedNode icon={FaWifi} style={{ top: '50%', left: '8%' }} animClass="float-med" />
         </>
     );
 
     // ── LOGIN SCREEN ────────────────────────────────────────────────────────
     if (!isLoggedIn) {
         return (
-            <div className="cyber-root cyber-bg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-                <BackgroundElements />
+            <div className="portal-root portal-bg">
+                <ItNetworkBackground />
 
-                <div className="cyber-card">
-                    {/* Logo & Icon */}
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                        <div style={{ background: 'rgba(255,255,255,0.9)', padding: '0.5rem', borderRadius: '0.5rem' }}>
-                            <img src="/cpecc-logo.png" alt="CPECC" style={{ height: '45px', objectFit: 'contain' }} />
+                <div className="glass-card">
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem', position: 'relative', zIndex: 5 }}>
+                        <div style={{ background: '#fff', padding: '0.6rem 1rem', borderRadius: '0.75rem', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                            <img src="/cpecc-logo.png" alt="CPECC" style={{ height: '48px', objectFit: 'contain' }} />
                         </div>
                     </div>
 
-                    <div className="shield-container">
+                    <div className="shield-wrapper">
+                        <div className="shield-pulse"></div>
                         <FaUserShield className="shield-icon" />
                     </div>
 
                     <div className="login-title">IT Service Hub</div>
                     <div className="login-sub">Secure Network Access</div>
 
-                    {error && <div className="cyber-error">{error}</div>}
+                    {error && <div className="error-msg">{error}</div>}
 
-                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', position: 'relative', zIndex: 5 }}>
                         <div>
-                            <label className="cyber-label">Admin Identity</label>
+                            <label className="glass-label">Username</label>
                             <input
-                                type="text" required autoComplete="username" className="cyber-input"
-                                placeholder="Enter username..."
+                                type="text" required autoComplete="username" className="glass-input"
+                                placeholder="Enter your ID..."
                                 value={credentials.username}
                                 onChange={e => setCredentials({ ...credentials, username: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="cyber-label">Passkey</label>
+                            <label className="glass-label">Password</label>
                             <input
-                                type="password" required autoComplete="current-password" className="cyber-input"
+                                type="password" required autoComplete="current-password" className="glass-input"
                                 placeholder="••••••••••••"
                                 value={credentials.password}
                                 onChange={e => setCredentials({ ...credentials, password: e.target.value })}
                             />
                         </div>
-                        <button type="submit" className="cyber-btn">
+                        <button type="submit" className="animated-btn">
                             Initialize Session
                         </button>
                     </form>
 
-                    <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '.7rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                    <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em' }}>
                         System Verification Required
                     </div>
                 </div>
@@ -463,76 +451,76 @@ function AdminPortal() {
 
     // ── DASHBOARD ────────────────────────────────────────────────────────────
     return (
-        <div className="cyber-root cyber-bg dash-root fade-in">
-            <BackgroundElements />
+        <div className="portal-root portal-bg anim-fade">
+            <ItNetworkBackground />
 
-            <div className="dash-container">
+            <div className="dash-content">
                 {/* Header */}
                 <div className="dash-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-                        <div style={{ background: 'rgba(255,255,255,0.9)', padding: '0.4rem', borderRadius: '0.5rem' }}>
-                            <img src="/cpecc-logo.png" alt="CPECC" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+                        <div style={{ background: '#fff', padding: '0.5rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                            <img src="/cpecc-logo.png" alt="CPECC" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
                         </div>
                         <div>
-                            <div className="dash-title">IT Service Hub</div>
+                            <div className="dash-header-title">IT Service Desk</div>
                             {lastRefresh && (
-                                <div className="dash-sub">
-                                    Network Last Polled: {lastRefresh.toLocaleTimeString()} (Auto 15s)
+                                <div className="dash-header-sub">
+                                    Network Synced: {lastRefresh.toLocaleTimeString()} (Auto 15s)
                                 </div>
                             )}
                         </div>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem', flexWrap: 'wrap' }}>
-                        <button className={`tab-btn${activeTab === 'dashboard' ? ' active' : ''}`} onClick={() => setActiveTab('dashboard')}>
-                            <FaList /> Work Queue
+                        <button className={`nav-btn${activeTab === 'dashboard' ? ' active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+                            <FaList /> Manage Tickets
                         </button>
-                        <button className={`tab-btn${activeTab === 'settings' ? ' active' : ''}`} onClick={() => setActiveTab('settings')}>
+                        <button className={`nav-btn${activeTab === 'settings' ? ' active' : ''}`} onClick={() => setActiveTab('settings')}>
                             <FaCog /> Configuration
                         </button>
-                        <button className="icon-btn" onClick={fetchTickets} title="Force Sync">
+                        <button className="ico-btn" onClick={fetchTickets} title="Sync Network">
                             <FaSync />
                         </button>
-                        <button className="logout-btn" onClick={handleLogout}>
-                            <FaSignOutAlt /> Terminate Session
+                        <button className="kill-btn" onClick={handleLogout}>
+                            <FaSignOutAlt /> End Session
                         </button>
                     </div>
                 </div>
 
                 {activeTab === 'settings' ? (
-                    <div style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '1.25rem', padding: '2rem' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(16px)', borderRadius: '1.25rem', padding: '2rem', border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 10px 30px rgba(14,165,233,0.06)' }}>
                         <AdminSettings />
                     </div>
                 ) : (
                     <>
-                        {/* Stats */}
+                        {/* Stats Cards */}
                         <div className="stat-grid">
                             {[
-                                { label: 'Total Requests', value: stats.total, color: '#38bdf8', icon: '🌐' },
-                                { label: 'Pending Tasks', value: stats.pending, color: '#fbbf24', icon: '⏳' },
-                                { label: 'Active Network', value: stats.active, color: '#a78bfa', icon: '⚡' },
-                                { label: 'Resolved', value: stats.resolved, color: '#34d399', icon: '✅' },
+                                { label: 'Total Assets', value: stats.total, color: '#0284c7', shadow: 'rgba(2,132,199,0.15)', icon: '🗂️' },
+                                { label: 'Queueing', value: stats.pending, color: '#d97706', shadow: 'rgba(217,119,6,0.15)', icon: '⏳' },
+                                { label: 'In Progress', value: stats.active, color: '#7c3aed', shadow: 'rgba(124,58,237,0.15)', icon: '⚡' },
+                                { label: 'Resolved', value: stats.resolved, color: '#059669', shadow: 'rgba(5,150,105,0.15)', icon: '✅' },
                             ].map(s => (
-                                <div key={s.label} className="stat-card" style={{ '--stat-color': s.color }}>
-                                    <div className="stat-num" style={{ color: s.color }}>{s.value}</div>
-                                    <div className="stat-lbl" style={{ color: s.color }}>{s.icon} {s.label}</div>
+                                <div key={s.label} className="stat-box" style={{ '--stat-color': s.color, '--hover-shadow': s.shadow }}>
+                                    <div className="stat-val">{s.value}</div>
+                                    <div className="stat-lbl">{s.icon} {s.label}</div>
                                 </div>
                             ))}
                         </div>
 
                         {/* Controls Bar */}
-                        <div className="controls-bar">
+                        <div className="filter-bar">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem', flex: 1, minWidth: '250px' }}>
-                                <FaFilter style={{ color: '#475569', fontSize: '1.1rem' }} />
+                                <FaFilter style={{ color: '#94a3b8', fontSize: '1.1rem' }} />
                                 <input
                                     type="text"
-                                    placeholder="Query by ID, Name, Node, or Location..."
+                                    placeholder="Search ID, Name, Project, or Office..."
                                     value={filter}
                                     onChange={e => setFilter(e.target.value)}
-                                    className="cyber-search"
+                                    className="text-filter"
                                 />
                             </div>
-                            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="cyber-select">
+                            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="drop-filter">
                                 <option value="all">Global Scope</option>
                                 <option value="Pending">Pending</option>
                                 <option value="Escalated">Escalated</option>
@@ -542,27 +530,27 @@ function AdminPortal() {
                                 <option value="Resolved">Resolved</option>
                             </select>
                             <div style={{ display: 'flex', gap: '.75rem' }}>
-                                <button onClick={downloadCSV} className="export-btn">
+                                <button onClick={downloadCSV} className="act-btn">
                                     <FaDownload /> Export CSV
                                 </button>
-                                <button onClick={handleExcelExport} className="export-btn export-excel">
-                                    <FaDatabase style={{ marginRight: '.4rem' }} /> Export Node Data
+                                <button onClick={handleExcelExport} className="act-btn act-excel">
+                                    <FaDatabase style={{ marginRight: '.4rem' }} /> Export Excel Data
                                 </button>
                             </div>
                         </div>
 
                         {/* Data Table */}
-                        <div className="table-wrap">
-                            <table className="cyber-table">
+                        <div className="data-card">
+                            <table className="ticket-table">
                                 <thead>
                                     <tr>
                                         <th>Ticket ID</th>
-                                        <th>Timestamp</th>
-                                        <th>Origin Node</th>
-                                        <th>Location / Project</th>
-                                        <th>Diagnostic Info</th>
-                                        <th>State</th>
-                                        <th>SysAdmin</th>
+                                        <th>Date/Time</th>
+                                        <th>User Details</th>
+                                        <th>Location details</th>
+                                        <th>Issue Description</th>
+                                        <th>Current Status</th>
+                                        <th>Assigned Admin</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -570,41 +558,41 @@ function AdminPortal() {
                                         const s = getStatusStyle(ticket.status);
                                         const isResolved = ticket.status === 'Resolved';
                                         return (
-                                            <tr key={ticket.ticketId} style={{ opacity: isResolved ? 0.5 : 1 }}>
-                                                <td><span className="ticket-id cyber-mono">{ticket.ticketId}</span></td>
+                                            <tr key={ticket.ticketId} style={{ opacity: isResolved ? 0.6 : 1 }}>
+                                                <td><span className="id-badge portal-mono">{ticket.ticketId}</span></td>
                                                 <td style={{ fontSize: '.75rem', color: '#64748b' }}>
                                                     {new Date(ticket.createdAt).toLocaleString()}
                                                 </td>
                                                 <td>
-                                                    <div style={{ fontWeight: 600, color: '#f8fafc' }}>{ticket.name}</div>
-                                                    <div className="cyber-mono" style={{ fontSize: '.75rem', color: '#94a3b8' }}>{ticket.userPhone}</div>
+                                                    <div style={{ fontWeight: 700, color: '#0f172a' }}>{ticket.name}</div>
+                                                    <div className="portal-mono" style={{ fontSize: '.75rem', color: '#64748b' }}>{ticket.userPhone}</div>
                                                 </td>
                                                 <td>
-                                                    <div style={{ fontWeight: 500, color: '#e2e8f0' }}>{ticket.projectName}</div>
-                                                    <div style={{ fontSize: '.75rem', color: '#38bdf8' }}>{ticket.office}</div>
+                                                    <div style={{ fontWeight: 600, color: '#1e293b' }}>{ticket.projectName}</div>
+                                                    <div style={{ fontSize: '.75rem', color: '#0284c7', fontWeight: 500 }}>{ticket.office}</div>
                                                 </td>
                                                 <td style={{ maxWidth: '280px' }}>
-                                                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#cbd5e1' }} title={ticket.complaint}>
+                                                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#475569', fontWeight: 500 }} title={ticket.complaint}>
                                                         {ticket.complaint}
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <span className={`status-pill ${s.bg} ${s.text} ${s.border}`}>
+                                                    <span className={`state-pill ${s.bg} ${s.text} ${s.border}`}>
                                                         {s.dot} {ticket.status}
                                                     </span>
                                                 </td>
                                                 <td style={{ fontSize: '.8rem' }}>
                                                     {ticket.resolvedByName
-                                                        ? <span style={{ color: '#34d399', fontWeight: 600 }}>[ {ticket.resolvedByName} ]</span>
-                                                        : <span style={{ color: '#475569' }}>WAITING</span>}
+                                                        ? <span style={{ color: '#059669', fontWeight: 700 }}>{ticket.resolvedByName}</span>
+                                                        : <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Waiting...</span>}
                                                 </td>
                                             </tr>
                                         );
                                     })}
                                     {filteredTickets.length === 0 && (
                                         <tr>
-                                            <td colSpan="7" style={{ textAlign: 'center', padding: '4rem', color: '#475569', fontSize: '1rem' }}>
-                                                &lt; NO DATA STREAMS FOUND &gt;
+                                            <td colSpan="7" style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8', fontSize: '1rem' }}>
+                                                Zero active tickets found in the network.
                                             </td>
                                         </tr>
                                     )}
@@ -614,8 +602,8 @@ function AdminPortal() {
                     </>
                 )}
 
-                <div className="cyber-footer">
-                    CPECC IT Service Network &nbsp;·&nbsp; Engineered by <span style={{ color: '#94a3b8' }}>Sandeep Pillai</span>
+                <div style={{ textAlign: 'center', padding: '2rem', fontSize: '.75rem', color: '#94a3b8', letterSpacing: '.03em', fontWeight: 500 }}>
+                    CPECC IT Service Network &nbsp;·&nbsp; Engineered by <span style={{ color: '#64748b', fontWeight: 700 }}>Sandeep Pillai</span>
                 </div>
             </div>
         </div>
